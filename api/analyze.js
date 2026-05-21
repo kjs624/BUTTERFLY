@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk'
+const Anthropic = require('@anthropic-ai/sdk')
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -12,11 +12,35 @@ const PUBLIC_DATA_CONTEXT = `
 전국 동아리 다양성 평균 74점 / 방과후 참여율 평균 71% / 학교생활 만족도 평균 70점
 `
 
-export default async function handler(req, res) {
+async function parseBody(req) {
+  if (req.body) return req.body
+  return new Promise((resolve, reject) => {
+    let data = ''
+    req.on('data', chunk => { data += chunk })
+    req.on('end', () => {
+      try { resolve(JSON.parse(data)) }
+      catch { resolve({}) }
+    })
+    req.on('error', reject)
+  })
+}
+
+module.exports = async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+
+  if (req.method === 'OPTIONS') return res.status(200).end()
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const { selections } = req.body
+  const body = await parseBody(req)
+  const { selections } = body
+
   if (!selections) return res.status(400).json({ error: 'selections required' })
+
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return res.status(500).json({ error: 'ANTHROPIC_API_KEY 환경변수가 설정되지 않았습니다.' })
+  }
 
   const prompt = `당신은 교육 공공데이터 전문가이자 진로 상담사입니다.
 학생의 학교 선택을 분석해 나비효과를 JSON 형식으로 반환하세요.
@@ -31,7 +55,7 @@ export default async function handler(req, res) {
 활용할 실제 교육 공공데이터:
 ${PUBLIC_DATA_CONTEXT}
 
-아래 JSON 형식으로만 응답하세요 (코드블록 없이):
+아래 JSON 형식으로만 응답하세요 (마크다운 코드블록 없이 순수 JSON만):
 {
   "summary": "2~3문장 전체 요약",
   "short": "단기 나비효과 (1~6개월) — 구체적 변화와 실제 수치 포함, 2~3문장",
@@ -41,8 +65,8 @@ ${PUBLIC_DATA_CONTEXT}
   "stat2": "진로 연결률 (예: 45%)",
   "stat3": "핵심 수치 하나 (예: +18%p)",
   "advice": "AI의 구체적 조언 1~2문장",
-  "gap": "지역 기회 격차 관련 경고 (해당 시 작성, 없으면 null)",
-  "sources": "참고한 데이터 출처 (학교알리미, KESS, 커리어넷 등 콤마 구분)"
+  "gap": "지역 기회 격차 관련 경고 (없으면 null)",
+  "sources": "학교알리미, KESS, 커리어넷"
 }`
 
   try {
@@ -58,12 +82,12 @@ ${PUBLIC_DATA_CONTEXT}
       parsed = JSON.parse(text)
     } catch {
       const match = text.match(/\{[\s\S]*\}/)
-      parsed = match ? JSON.parse(match[0]) : { summary: text, short: '', mid: '', long: '' }
+      parsed = match ? JSON.parse(match[0]) : { summary: text, short: '', mid: '', long: '', stat1: '', stat2: '', stat3: '', advice: '', gap: null, sources: '' }
     }
 
     res.status(200).json(parsed)
   } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: err.message })
+    console.error('analyze error:', err)
+    res.status(500).json({ error: err.message || '분석 중 오류가 발생했습니다.' })
   }
 }
