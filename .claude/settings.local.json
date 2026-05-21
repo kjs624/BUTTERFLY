@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /c/Users/junse/OneDrive/Desktop/BUTTERFLY log --oneline)",
+      "Bash(gh auth *)",
+      "PowerShell(gh auth status 2>&1)",
+      "Bash(npx create-vite@latest . --template react)",
+      "Bash(git -C /c/Users/junse/OneDrive/Desktop/BUTTERFLY init)",
+      "Bash(git -C /c/Users/junse/OneDrive/Desktop/BUTTERFLY config user.email \"junseonggo49@gmail.com\")",
+      "Bash(git -C /c/Users/junse/OneDrive/Desktop/BUTTERFLY config user.name \"kjs624\")",
+      "Bash(git add *)"
+    ]
+  }
+}

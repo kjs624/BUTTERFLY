@@ -1,0 +1,207 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+:root {
+  --purple: #7C3AED;
+  --purple-light: #A855F7;
+  --teal: #0891B2;
+  --amber: #F5A623;
+  --mint: #00C9A7;
+  --mint-light: #34D9BB;
+
+  --bg-1: #070514;
+  --bg-2: #0F0A28;
+  --bg-3: #16103A;
+  --card-bg: rgba(124, 58, 237, 0.08);
+  --card-border: rgba(124, 58, 237, 0.2);
+  --text-primary: #F0EAFB;
+  --text-secondary: #B8AEDD;
+  --text-muted: #7A6FA0;
+  --nav-bg: rgba(7, 5, 20, 0.85);
+}
+
+[data-theme='light'] {
+  --bg-1: #F8F5FF;
+  --bg-2: #EDE8F8;
+  --bg-3: #E4DCF5;
+  --card-bg: rgba(124, 58, 237, 0.06);
+  --card-border: rgba(124, 58, 237, 0.15);
+  --text-primary: #1A0A3D;
+  --text-secondary: #4B3A7A;
+  --text-muted: #8B7AAA;
+  --nav-bg: rgba(248, 245, 255, 0.9);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg-1);
+  color: var(--text-primary);
+  min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
+}
+
+h1, h2, h3 {
+  font-family: 'DM Serif Display', serif;
+}
+
+a { text-decoration: none; color: inherit; }
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
+
+input, textarea {
+  font-family: inherit;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-2); }
+::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 3px; }
+
+/* Layout */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.page {
+  padding-top: 80px;
+  min-height: 100vh;
+}
+
+/* Cards */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 24px;
+  backdrop-filter: blur(12px);
+}
+
+/* Buttons */
+.btn-primary {
+  background: linear-gradient(135deg, var(--purple), var(--teal));
+  color: #fff;
+  padding: 14px 32px;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(124, 58, 237, 0.5);
+}
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-outline {
+  border: 1.5px solid var(--card-border);
+  color: var(--text-secondary);
+  padding: 10px 24px;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-family: 'Noto Sans KR', sans-serif;
+  transition: border-color 0.2s, color 0.2s;
+}
+.btn-outline:hover {
+  border-color: var(--purple);
+  color: var(--purple-light);
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes wingsFlap {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(0.6); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes shimmer {
+  from { background-position: -200% center; }
+  to { background-position: 200% center; }
+}
+
+.fade-up {
+  animation: fadeUp 0.5s ease forwards;
+}
+
+.float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--purple-light), var(--mint));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Mobile bottom tab bar */
+@media (max-width: 480px) {
+  .page { padding-top: 60px; padding-bottom: 80px; }
+
+  .bottom-tab {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    display: flex;
+    background: var(--nav-bg);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--card-border);
+    z-index: 100;
+  }
+
+  .bottom-tab a {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 0;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    transition: color 0.2s;
+  }
+
+  .bottom-tab a.active { color: var(--purple-light); }
+  .bottom-tab a svg { width: 22px; height: 22px; }
+}
+
+/* Loading skeleton */
+.skeleton {
+  background: linear-gradient(90deg, var(--card-bg) 25%, var(--card-border) 50%, var(--card-bg) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
