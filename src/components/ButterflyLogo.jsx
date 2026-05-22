@@ -1,42 +1,48 @@
 export default function ButterflyLogo({ size = 80 }) {
-  const r = size * 0.36
-  const gap = size * 0.05
-  const cx1 = size / 2 - r - gap / 2
-  const cx2 = size / 2 + r + gap / 2
-  const cy1 = size / 2 - r - gap / 2
-  const cy2 = size / 2 + r + gap / 2
+  const h = size / 2
 
   return (
     <>
       <style>{`
         @keyframes bf-float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-8px); }
+          0%, 100% { transform: translateY(0px); }
+          50%       { transform: translateY(-8px); }
         }
         @keyframes bf-flap {
           0%, 100% { transform: scaleX(1); }
-          50% { transform: scaleX(0.18); }
+          50%       { transform: scaleX(0.12); }
         }
-        .bf-svg { animation: bf-float 3s ease-in-out infinite; }
-        .bf-left {
+        .bf-svg  { animation: bf-float 3s ease-in-out infinite; display: block; }
+        .bf-wing-l {
           transform-box: fill-box;
           transform-origin: right center;
           animation: bf-flap 1.8s ease-in-out infinite;
         }
-        .bf-right {
+        .bf-wing-r {
           transform-box: fill-box;
           transform-origin: left center;
           animation: bf-flap 1.8s ease-in-out infinite;
         }
       `}</style>
-      <svg className="bf-svg" width={size} height={size} viewBox={`0 0 ${size} ${size}`} fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g className="bf-left">
-          <circle cx={cx1} cy={cy1} r={r} fill="#8B5CF6" />
-          <circle cx={cx1} cy={cy2} r={r} fill="#F97316" />
+
+      {/* 4개 쿼터-원 → 나비 날개처럼 좌우로 접힘 */}
+      <svg
+        className="bf-svg"
+        width={size} height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {/* 왼쪽 날개: 보라(위) + 주황(아래) */}
+        <g className="bf-wing-l">
+          <circle cx={0}    cy={0}    r={h} fill="#8B5CF6" />
+          <circle cx={0}    cy={size} r={h} fill="#F97316" />
         </g>
-        <g className="bf-right">
-          <circle cx={cx2} cy={cy1} r={r} fill="#7C3AED" />
-          <circle cx={cx2} cy={cy2} r={r} fill="#00C9A7" />
+
+        {/* 오른쪽 날개: 진보라(위) + 청록(아래) */}
+        <g className="bf-wing-r">
+          <circle cx={size} cy={0}    r={h} fill="#7C3AED" />
+          <circle cx={size} cy={size} r={h} fill="#00C9A7" />
         </g>
       </svg>
     </>
