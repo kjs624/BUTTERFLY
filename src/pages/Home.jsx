@@ -26,23 +26,21 @@ export default function Home() {
         textAlign: 'center', padding: '60px 20px',
         background: 'radial-gradient(ellipse 80% 60% at 50% 30%, rgba(124,58,237,0.15) 0%, transparent 70%)',
       }}>
-        <div className="float" style={{ marginBottom: 32 }}>
-          <ButterflyLogo size={120} animate />
+        <div style={{ marginBottom: 28 }}>
+          <ButterflyLogo size={120} />
         </div>
         <h1 style={{
           fontFamily: "'DM Serif Display', serif",
-          fontSize: 'clamp(2.4rem, 6vw, 4rem)',
-          lineHeight: 1.15, marginBottom: 20,
+          fontSize: 'clamp(3rem, 8vw, 5.5rem)',
+          lineHeight: 1.05, marginBottom: 16, letterSpacing: '0.04em',
         }}>
-          학교에서의 <span className="gradient-text">모든 선택</span>이<br />미래를 만듭니다
+          BUTTERFLY
         </h1>
         <p style={{
-          color: 'var(--text-secondary)', fontSize: 'clamp(0.95rem, 2vw, 1.15rem)',
-          maxWidth: 560, lineHeight: 1.7, marginBottom: 40,
-          fontFamily: "'Noto Sans KR', sans-serif",
+          color: 'var(--text-secondary)', fontSize: 'clamp(0.95rem, 2vw, 1.1rem)',
+          marginBottom: 40, fontFamily: "'Noto Sans KR', sans-serif",
         }}>
-          교육 공공데이터 × Claude AI로<br />
-          당신의 학교 선택이 만드는 나비효과를 시각화합니다
+          학교에서의 선택이 만드는 나비효과
         </p>
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
           <button className="btn-primary" style={{ fontSize: '1.05rem' }} onClick={() => navigate('/select')}>
@@ -51,17 +49,6 @@ export default function Home() {
           <button className="btn-outline" onClick={() => navigate('/map')}>
             지역 격차 지도 보기
           </button>
-        </div>
-
-        {/* Badge */}
-        <div style={{
-          marginTop: 48,
-          background: 'var(--card-bg)', border: '1px solid var(--card-border)',
-          borderRadius: 50, padding: '8px 20px',
-          fontSize: '0.8rem', color: 'var(--text-muted)',
-          fontFamily: "'Noto Sans KR', sans-serif",
-        }}>
-          🏆 제8회 교육 공공데이터 AI 활용대회 출품작
         </div>
       </section>
 
