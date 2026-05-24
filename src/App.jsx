@@ -7,6 +7,7 @@ import Result from './pages/Result'
 import Map from './pages/Map'
 import My from './pages/My'
 import Auth from './pages/Auth'
+import AuthCallback from './pages/AuthCallback'
 
 export default function App() {
   const { theme, toggle } = useTheme()
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/map" element={<Map />} />
         <Route path="/my" element={<My />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
       </Routes>
     </BrowserRouter>
   )

@@ -28,5 +28,11 @@ export function useAuth() {
 
   const signOut = () => supabase.auth.signOut()
 
-  return { user, loading, signIn, signUp, signOut, enabled: supabaseEnabled }
+  const signInWithOAuth = (provider) =>
+    supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    })
+
+  return { user, loading, signIn, signUp, signOut, signInWithOAuth, enabled: supabaseEnabled }
 }
