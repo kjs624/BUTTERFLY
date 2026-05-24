@@ -1,32 +1,7 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import { geoMercator, geoPath } from 'd3-geo'
 import { regionData } from '../data/publicData'
-
-// Simple equirectangular projection for Korea
-// x = (lon - 127.7) * 122 + 250,  y = (36.0 - lat) * 92.6 + 280
-const px = lon => (lon - 127.7) * 122 + 250
-const py = lat => (36.0 - lat) * 92.6 + 280
-
-// Province bounding boxes [west, east, south, north]
-// Larger provinces first (rendered behind cities)
-const REGIONS = [
-  { key: '경기', w: 126.43, e: 128.08, s: 37.00, n: 38.30 },
-  { key: '강원', w: 127.70, e: 129.33, s: 37.00, n: 38.62 },
-  { key: '충북', w: 127.33, e: 128.57, s: 36.19, n: 37.47 },
-  { key: '충남', w: 125.96, e: 127.33, s: 35.98, n: 37.08 },
-  { key: '전북', w: 126.31, e: 127.90, s: 35.33, n: 36.01 },
-  { key: '전남', w: 126.18, e: 127.72, s: 34.17, n: 35.33 },
-  { key: '경북', w: 128.08, e: 129.41, s: 35.57, n: 37.09 },
-  { key: '경남', w: 127.61, e: 129.37, s: 34.72, n: 35.57 },
-  { key: '인천', w: 126.12, e: 126.84, s: 37.17, n: 37.83 },
-  { key: '서울', w: 126.78, e: 127.18, s: 37.43, n: 37.70 },
-  { key: '세종', w: 127.20, e: 127.39, s: 36.46, n: 36.66 },
-  { key: '대전', w: 127.27, e: 127.62, s: 36.19, n: 36.49 },
-  { key: '광주', w: 126.78, e: 126.99, s: 35.05, n: 35.27 },
-  { key: '대구', w: 128.46, e: 128.83, s: 35.67, n: 35.96 },
-  { key: '울산', w: 129.00, e: 129.46, s: 35.33, n: 35.79 },
-  { key: '부산', w: 128.80, e: 129.22, s: 35.02, n: 35.40 },
-  { key: '제주', w: 126.15, e: 126.95, s: 33.22, n: 33.56 },
-]
+import koreaGeo from '../data/koreaGeo.json'
 
 const METRICS = [
   { key: 'clubDiversity',   label: '동아리 다양성',   unit: '점', min: 55, max: 95 },
@@ -46,19 +21,25 @@ function getColor(value, metric) {
 
 const LEGEND_LABELS_SCORE = ['최하', '하', '중하', '중', '중상', '상', '최상']
 const LEGEND_LABELS_GAP   = ['격차없음', '', '', '중간', '', '', '격차큼']
+const SMALL_KEYS = new Set(['서울','인천','세종','대전','광주','대구','울산','부산'])
 
-// City-level regions (small, show short label only on hover)
-const SMALL_REGIONS = new Set(['서울','인천','세종','대전','광주','대구','울산','부산'])
+const W = 500, H = 580
 
 export default function KoreaMap() {
   const [activeMetric, setActiveMetric] = useState('clubDiversity')
   const [hovered,  setHovered]  = useState(null)
   const [selected, setSelected] = useState(null)
 
-  const metric       = METRICS.find(m => m.key === activeMetric)
+  const projection = useMemo(() =>
+    geoMercator().fitExtent([[20, 20], [W - 20, H - 20]], koreaGeo),
+    []
+  )
+  const pathGen = useMemo(() => geoPath(projection), [projection])
+
+  const metric      = METRICS.find(m => m.key === activeMetric)
   const activeRegion = selected || hovered
-  const info         = activeRegion ? regionData[activeRegion] : null
-  const palette      = activeMetric === 'ruralGap' ? PALETTE_GAP : PALETTE_SCORE
+  const info        = activeRegion ? regionData[activeRegion] : null
+  const palette     = activeMetric === 'ruralGap' ? PALETTE_GAP : PALETTE_SCORE
 
   return (
     <div>
@@ -84,49 +65,44 @@ export default function KoreaMap() {
         {/* 지도 */}
         <div style={{ background: 'var(--bg-2)', borderRadius: 16, overflow: 'hidden' }}>
           <svg
-            viewBox="0 0 500 560"
+            viewBox={`0 0 ${W} ${H}`}
             style={{ width: '100%', height: 'auto', display: 'block' }}
           >
-            {REGIONS.map(r => {
-              const val      = regionData[r.key]?.[activeMetric] ?? metric.min
+            {koreaGeo.features.map(feature => {
+              const key      = feature.properties.key
+              const val      = regionData[key]?.[activeMetric] ?? metric.min
               const fill     = getColor(val, metric)
-              const isActive = r.key === activeRegion
-              const x1 = px(r.w), x2 = px(r.e)
-              const y1 = py(r.n), y2 = py(r.s)
-              const cx = (x1 + x2) / 2
-              const cy = (y1 + y2) / 2
-              const w  = x2 - x1
-              const h  = y2 - y1
-              const small = SMALL_REGIONS.has(r.key)
-              const fontSize = small ? 8 : Math.min(13, w / 3)
+              const isActive = key === activeRegion
+              const d        = pathGen(feature)
+              const [cx, cy] = pathGen.centroid(feature)
+              const small    = SMALL_KEYS.has(key)
 
               return (
                 <g
-                  key={r.key}
-                  onMouseEnter={() => setHovered(r.key)}
+                  key={key}
+                  onMouseEnter={() => setHovered(key)}
                   onMouseLeave={() => setHovered(null)}
-                  onClick={() => setSelected(s => s === r.key ? null : r.key)}
+                  onClick={() => setSelected(s => s === key ? null : key)}
                   style={{ cursor: 'pointer' }}
                 >
-                  <rect
-                    x={x1} y={y1} width={w} height={h}
+                  <path
+                    d={d}
                     fill={fill}
                     stroke={isActive ? '#fff' : 'rgba(255,255,255,0.35)'}
                     strokeWidth={isActive ? 2 : 0.8}
-                    opacity={isActive ? 1 : hovered && hovered !== r.key ? 0.75 : 0.92}
-                    rx={2}
+                    opacity={isActive ? 1 : hovered && hovered !== key ? 0.75 : 0.92}
                   />
-                  {w > 22 && h > 12 && (
+                  {!isNaN(cx) && !isNaN(cy) && !small && (
                     <text
-                      x={cx} y={cy + fontSize * 0.38}
+                      x={cx} y={cy + 4}
                       textAnchor="middle"
-                      fontSize={fontSize}
+                      fontSize={11}
                       fontFamily="'Noto Sans KR', sans-serif"
                       fontWeight={600}
-                      fill="rgba(255,255,255,0.9)"
+                      fill="rgba(255,255,255,0.92)"
                       style={{ pointerEvents: 'none', userSelect: 'none' }}
                     >
-                      {r.key}
+                      {key}
                     </text>
                   )}
                 </g>
@@ -195,7 +171,6 @@ export default function KoreaMap() {
                 <span key={i} style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>{l}</span>
               ))}
             </div>
-
             <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--card-border)' }}>
               <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", marginBottom: 4 }}>전국 평균</p>
               <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--purple-light)', fontFamily: "'DM Serif Display', serif" }}>
