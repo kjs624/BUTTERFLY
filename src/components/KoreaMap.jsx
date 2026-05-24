@@ -21,6 +21,8 @@ function getColor(value, metric) {
 
 const LEGEND_LABELS_SCORE = ['최하', '하', '중하', '중', '중상', '상', '최상']
 const LEGEND_LABELS_GAP   = ['격차없음', '', '', '중간', '', '', '격차큼']
+
+// 소도시: 지도에서 레이블을 더 작게 표시
 const SMALL_KEYS = new Set(['서울','인천','세종','대전','광주','대구','울산','부산'])
 
 const W = 500, H = 580
@@ -36,10 +38,10 @@ export default function KoreaMap() {
   )
   const pathGen = useMemo(() => geoPath(projection), [projection])
 
-  const metric      = METRICS.find(m => m.key === activeMetric)
+  const metric       = METRICS.find(m => m.key === activeMetric)
   const activeRegion = selected || hovered
-  const info        = activeRegion ? regionData[activeRegion] : null
-  const palette     = activeMetric === 'ruralGap' ? PALETTE_GAP : PALETTE_SCORE
+  const info         = activeRegion ? regionData[activeRegion] : null
+  const palette      = activeMetric === 'ruralGap' ? PALETTE_GAP : PALETTE_SCORE
 
   return (
     <div>
@@ -68,6 +70,13 @@ export default function KoreaMap() {
             viewBox={`0 0 ${W} ${H}`}
             style={{ width: '100%', height: 'auto', display: 'block' }}
           >
+            <defs>
+              {/* 레이블 가독성을 위한 텍스트 그림자 */}
+              <filter id="lbl-shadow" x="-30%" y="-30%" width="160%" height="160%">
+                <feDropShadow dx="0" dy="0" stdDeviation="2" floodColor="#000" floodOpacity="0.85"/>
+              </filter>
+            </defs>
+
             {koreaGeo.features.map(feature => {
               const key      = feature.properties.key
               const val      = regionData[key]?.[activeMetric] ?? metric.min
@@ -76,6 +85,7 @@ export default function KoreaMap() {
               const d        = pathGen(feature)
               const [cx, cy] = pathGen.centroid(feature)
               const small    = SMALL_KEYS.has(key)
+              const fontSize = small ? 7.5 : 12
 
               return (
                 <g
@@ -88,18 +98,21 @@ export default function KoreaMap() {
                   <path
                     d={d}
                     fill={fill}
-                    stroke={isActive ? '#fff' : 'rgba(255,255,255,0.35)'}
-                    strokeWidth={isActive ? 2 : 0.8}
-                    opacity={isActive ? 1 : hovered && hovered !== key ? 0.75 : 0.92}
+                    stroke={isActive ? '#fff' : 'rgba(255,255,255,0.28)'}
+                    strokeWidth={isActive ? 2.5 : 0.7}
+                    opacity={isActive ? 1 : hovered && hovered !== key ? 0.72 : 0.90}
                   />
-                  {!isNaN(cx) && !isNaN(cy) && !small && (
+                  {/* 모든 지역 레이블 표시 — 그림자로 가독성 확보 */}
+                  {!isNaN(cx) && !isNaN(cy) && (
                     <text
-                      x={cx} y={cy + 4}
+                      x={cx}
+                      y={cy + fontSize * 0.38}
                       textAnchor="middle"
-                      fontSize={11}
+                      fontSize={fontSize}
                       fontFamily="'Noto Sans KR', sans-serif"
-                      fontWeight={600}
-                      fill="rgba(255,255,255,0.92)"
+                      fontWeight={700}
+                      fill="#ffffff"
+                      filter="url(#lbl-shadow)"
                       style={{ pointerEvents: 'none', userSelect: 'none' }}
                     >
                       {key}
