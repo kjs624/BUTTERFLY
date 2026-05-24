@@ -1,0 +1,90 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {"CTP_KOR_NM": "경기도"},
+      "geometry": {"type": "Polygon", "coordinates": [[[126.43,37.00],[128.08,37.00],[128.10,37.60],[128.08,38.30],[127.40,38.30],[126.80,38.10],[126.43,37.80],[126.43,37.00]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"CTP_KOR_NM": "강원도"},
+      "geometry": {"type": "Polygon", "coordinates": [[[127.70,37.00],[129.33,37.00],[129.40,37.80],[129.33,38.62],[128.40,38.62],[127.70,38.30],[127.70,37.00]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"CTP_KOR_NM": "충청북도"},
+      "geometry": {"type": "Polygon", "coordinates": [[[127.33,36.19],[128.57,36.19],[128.57,37.00],[128.08,37.09],[127.33,37.47],[127.33,36.19]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"CTP_KOR_NM": "충청남도"},
+      "geometry": {"type": "Polygon", "coordinates": [[[125.96,35.98],[127.33,35.98],[127.33,37.08],[126.43,37.00],[125.96,36.70],[125.96,35.98]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"CTP_KOR_NM": "전라북도"},
+      "geometry": {"type": "Polygon", "coordinates": [[[126.31,35.33],[127.90,35.33],[127.90,36.01],[127.33,35.98],[126.31,36.01],[126.31,35.33]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"CTP_KOR_NM": "전라남도"},
+      "geometry": {"type": "Polygon", "coordinates": [[[126.18,34.17],[127.72,34.17],[127.72,35.10],[127.30,35.33],[126.31,35.33],[126.18,34.80],[125.90,34.50],[126.18,34.17]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"CTP_KOR_NM": "경상북도"},
+      "geometry": {"type": "Polygon", "coordinates": [[[128.08,35.57],[129.41,35.57],[129.41,37.09],[128.57,37.09],[128.08,37.00],[128.08,35.57]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"CTP_KOR_NM": "경상남도"},
+      "geometry": {"type": "Polygon", "coordinates": [[[127.61,34.72],[129.37,34.72],[129.37,35.57],[128.08,35.57],[127.61,35.33],[127.61,34.72]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"CTP_KOR_NM": "인천광역시"},
+      "geometry": {"type": "Polygon", "coordinates": [[[126.12,37.17],[126.84,37.17],[126.84,37.83],[126.40,37.83],[126.12,37.50],[126.12,37.17]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"CTP_KOR_NM": "서울특별시"},
+      "geometry": {"type": "Polygon", "coordinates": [[[126.78,37.43],[127.18,37.43],[127.18,37.70],[126.78,37.70],[126.78,37.43]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"CTP_KOR_NM": "세종특별자치시"},
+      "geometry": {"type": "Polygon", "coordinates": [[[127.20,36.46],[127.39,36.46],[127.39,36.66],[127.20,36.66],[127.20,36.46]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"CTP_KOR_NM": "대전광역시"},
+      "geometry": {"type": "Polygon", "coordinates": [[[127.27,36.19],[127.62,36.19],[127.62,36.49],[127.27,36.49],[127.27,36.19]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"CTP_KOR_NM": "광주광역시"},
+      "geometry": {"type": "Polygon", "coordinates": [[[126.78,35.05],[126.99,35.05],[126.99,35.27],[126.78,35.27],[126.78,35.05]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"CTP_KOR_NM": "대구광역시"},
+      "geometry": {"type": "Polygon", "coordinates": [[[128.46,35.67],[128.83,35.67],[128.83,35.96],[128.46,35.96],[128.46,35.67]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"CTP_KOR_NM": "울산광역시"},
+      "geometry": {"type": "Polygon", "coordinates": [[[129.00,35.33],[129.46,35.33],[129.46,35.79],[129.00,35.79],[129.00,35.33]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"CTP_KOR_NM": "부산광역시"},
+      "geometry": {"type": "Polygon", "coordinates": [[[128.80,35.02],[129.22,35.02],[129.22,35.40],[128.80,35.40],[128.80,35.02]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"CTP_KOR_NM": "제주특별자치도"},
+      "geometry": {"type": "Polygon", "coordinates": [[[126.15,33.22],[126.95,33.22],[126.95,33.56],[126.15,33.56],[126.15,33.22]]]}
+    }
+  ]
+}

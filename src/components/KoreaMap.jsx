@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
 import { regionData } from '../data/publicData'
 
-const GEO_URL =
-  'https://raw.githubusercontent.com/southkorea/southkorea-maps/master/kostat/2012/json/skorea_provinces_geo_simple.json'
+const GEO_URL = '/korea.json'
 
 const NAME_MAP = {
   '서울특별시': '서울', '부산광역시': '부산', '대구광역시': '대구',
