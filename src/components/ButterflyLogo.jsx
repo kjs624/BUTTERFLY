@@ -53,13 +53,13 @@ export default function ButterflyLogo({ size = 80 }) {
           </defs>
 
           <g className="bf-wing-l">
-            <path d={upperLeft}  fill="url(#g-ul)"/>
-            <path d={lowerLeft}  fill="url(#g-ll)"/>
+            <path d={upperLeft}  fill="url(#g-ul)" opacity={0.68}/>
+            <path d={lowerLeft}  fill="url(#g-ll)" opacity={0.58}/>
           </g>
 
           <g className="bf-wing-r">
-            <path d={upperRight} fill="url(#g-ur)"/>
-            <path d={lowerRight} fill="url(#g-lr)"/>
+            <path d={upperRight} fill="url(#g-ur)" opacity={0.68}/>
+            <path d={lowerRight} fill="url(#g-lr)" opacity={0.58}/>
           </g>
         </svg>
       </div>
