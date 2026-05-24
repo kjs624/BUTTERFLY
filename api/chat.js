@@ -45,8 +45,8 @@ ${analysisResult?.summary || ''}
 
   try {
     const message = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 512,
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 600,
       system: systemPrompt,
       messages: messages.map(m => ({ role: m.role, content: m.content })),
     })
