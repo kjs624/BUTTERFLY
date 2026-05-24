@@ -1,67 +1,64 @@
 import { useState } from 'react'
+import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
 import { regionData } from '../data/publicData'
 
-// 17개 시도 — 도/광역시 먼저, 소규모 시 나중에 (z-order)
-const PROVINCES = [
-  { id: '강원', d: 'M220,78 L308,70 L315,148 L280,170 L246,166 L220,142 Z', cx: 268, cy: 118 },
-  { id: '경기', d: 'M150,100 L220,95 L228,148 L215,172 L182,175 L156,167 L146,138 Z', cx: 188, cy: 138 },
-  { id: '인천', d: 'M128,116 L156,112 L162,140 L154,157 L128,150 Z', cx: 146, cy: 134 },
-  { id: '충북', d: 'M218,172 L258,167 L268,208 L244,230 L210,224 L198,198 Z', cx: 234, cy: 198 },
-  { id: '충남', d: 'M138,174 L188,172 L198,198 L184,226 L155,232 L126,214 L126,187 Z', cx: 160, cy: 202 },
-  { id: '경북', d: 'M246,170 L310,160 L320,208 L293,242 L248,235 L228,207 Z', cx: 278, cy: 198 },
-  { id: '전북', d: 'M124,234 L188,228 L193,262 L164,280 L126,270 L114,252 Z', cx: 156, cy: 254 },
-  { id: '전남', d: 'M108,274 L165,270 L172,308 L143,332 L106,318 L96,294 Z', cx: 136, cy: 298 },
-  { id: '경남', d: 'M215,252 L292,242 L303,278 L272,308 L220,300 L203,274 Z', cx: 253, cy: 278 },
-  { id: '울산', d: 'M293,242 L322,236 L328,268 L303,275 Z', cx: 313, cy: 256 },
-  { id: '제주', d: 'M150,350 L220,344 L224,370 L190,377 L152,370 Z', cx: 188, cy: 360 },
-]
+// 공개 Korea 시도 GeoJSON
+const GEO_URL =
+  'https://raw.githubusercontent.com/southkorea/southkorea-maps/master/kostat/2012/json/skorea_provinces_geo_simple.json'
 
-const CITIES = [
-  { id: '서울', d: 'M175,128 L197,124 L204,140 L198,154 L177,156 L169,142 Z', cx: 189, cy: 141 },
-  { id: '세종', d: 'M189,198 L208,195 L210,213 L191,215 Z', cx: 200, cy: 206 },
-  { id: '대전', d: 'M179,217 L200,214 L202,232 L181,234 Z', cx: 192, cy: 224 },
-  { id: '광주', d: 'M153,272 L175,269 L178,288 L156,291 Z', cx: 166, cy: 280 },
-  { id: '대구', d: 'M248,234 L282,230 L286,255 L253,259 Z', cx: 268, cy: 244 },
-  { id: '부산', d: 'M271,295 L306,280 L313,305 L283,315 Z', cx: 293, cy: 299 },
-]
-
-const REGIONS = [...PROVINCES, ...CITIES]
+// GeoJSON 속성명 → 내 데이터 키 변환
+const NAME_MAP = {
+  '서울특별시': '서울', '부산광역시': '부산', '대구광역시': '대구',
+  '인천광역시': '인천', '광주광역시': '광주', '대전광역시': '대전',
+  '울산광역시': '울산', '세종특별자치시': '세종', '세종특별자치시 ': '세종',
+  '경기도': '경기', '강원도': '강원', '강원특별자치도': '강원',
+  '충청북도': '충북', '충청남도': '충남',
+  '전라북도': '전북', '전북특별자치도': '전북', '전라남도': '전남',
+  '경상북도': '경북', '경상남도': '경남',
+  '제주특별자치도': '제주',
+}
 
 const METRICS = [
-  { key: 'clubDiversity',  label: '동아리 다양성', unit: '점' },
-  { key: 'afterSchoolRate', label: '방과후 참여율', unit: '%' },
-  { key: 'satisfaction',   label: '학교생활 만족도', unit: '점' },
-  { key: 'ruralGap',       label: '도농 격차', unit: 'p' },
+  { key: 'clubDiversity',   label: '동아리 다양성',   unit: '점', min: 55, max: 95 },
+  { key: 'afterSchoolRate', label: '방과후 참여율',   unit: '%',  min: 50, max: 90 },
+  { key: 'satisfaction',    label: '학교생활 만족도', unit: '점', min: 58, max: 82 },
+  { key: 'ruralGap',        label: '도농 격차',       unit: 'p',  min: 0,  max: 30 },
 ]
 
-// 보라(낮음) → 청록(높음) / 격차는 청록(낮음=좋음) → 주황(높음=나쁨)
-function getColor(value, key) {
-  if (key === 'ruralGap') {
-    const ratio = Math.min(value / 28, 1)
-    const r = Math.round(0   + ratio * 240)
-    const g = Math.round(201 - ratio * 140)
-    const b = Math.round(167 - ratio * 150)
-    return `rgba(${r},${g},${b},0.88)`
-  }
-  // 실제 데이터 범위 55~95 기준으로 정규화
-  const ratio = Math.max(0, Math.min((value - 55) / 40, 1))
-  const r = Math.round(124 - ratio * 116)   // 124 → 8
-  const g = Math.round(58  + ratio * 143)   // 58  → 201
-  const b = Math.round(237 - ratio * 70)    // 237 → 167
-  return `rgba(${r},${g},${b},0.88)`
+// 7단계 색상 스케일 — 점수 차이를 극대화
+const PALETTE_SCORE = ['#1E1B4B','#3730A3','#6D28D9','#7C3AED','#0891B2','#0E9F6E','#00C9A7']
+const PALETTE_GAP   = ['#00C9A7','#10B981','#84CC16','#EAB308','#F97316','#EF4444','#991B1B']
+
+function getColor(value, metric) {
+  const { min, max, key } = metric
+  const ratio = Math.max(0, Math.min((value - min) / (max - min), 1))
+  const palette = key === 'ruralGap' ? PALETTE_GAP : PALETTE_SCORE
+  const idx = Math.round(ratio * (palette.length - 1))
+  return palette[idx]
 }
+
+const LEGEND_LABELS_SCORE = ['최하', '하', '중하', '중', '중상', '상', '최상']
+const LEGEND_LABELS_GAP   = ['격차 없음', '', '', '중간', '', '', '격차 큼']
 
 export default function KoreaMap() {
   const [activeMetric, setActiveMetric] = useState('clubDiversity')
-  const [hovered, setHovered]   = useState(null)
+  const [hovered, setHovered] = useState(null)
   const [selected, setSelected] = useState(null)
 
-  const active = selected || hovered
-  const info   = active ? regionData[active] : null
+  const metric = METRICS.find(m => m.key === activeMetric)
+  const activeRegion = selected || hovered
+  const info = activeRegion ? regionData[activeRegion] : null
+
+  const getRegionKey = (props) => {
+    const raw = props.CTP_KOR_NM || props.name_kor || props.NAME_1 || ''
+    return NAME_MAP[raw.trim()] || raw
+  }
+
+  const palette = activeMetric === 'ruralGap' ? PALETTE_GAP : PALETTE_SCORE
 
   return (
     <div>
-      {/* 지표 선택 */}
+      {/* 지표 선택 탭 */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
         {METRICS.map(m => (
           <button key={m.key} onClick={() => setActiveMetric(m.key)} style={{
@@ -79,100 +76,124 @@ export default function KoreaMap() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 24, alignItems: 'start' }}>
-        {/* SVG 지도 */}
-        <svg viewBox="88 62 248 325" style={{ width: '100%', maxWidth: 440 }}>
-          {REGIONS.map(region => {
-            const val     = regionData[region.id]?.[activeMetric] ?? 70
-            const fill    = getColor(val, activeMetric)
-            const isCity  = CITIES.some(c => c.id === region.id)
-            const isActive = region.id === active
-            return (
-              <g key={region.id}>
-                <path
-                  d={region.d}
-                  fill={fill}
-                  stroke={isActive ? '#fff' : isCity ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.18)'}
-                  strokeWidth={isActive ? 2.5 : isCity ? 1.2 : 0.7}
-                  opacity={isActive ? 1 : 0.87}
-                  style={{ cursor: 'pointer', transition: 'all 0.2s' }}
-                  onMouseEnter={() => setHovered(region.id)}
-                  onMouseLeave={() => setHovered(null)}
-                  onClick={() => setSelected(s => s === region.id ? null : region.id)}
-                />
-                <text
-                  x={region.cx} y={region.cy}
-                  textAnchor="middle"
-                  fontSize={isCity ? 5.5 : 7}
-                  fill="#fff"
-                  opacity={0.95}
-                  style={{ pointerEvents: 'none', fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 600 }}
-                >
-                  {region.id}
-                </text>
-              </g>
-            )
-          })}
-        </svg>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 24, alignItems: 'start' }}>
+        {/* 지도 */}
+        <div style={{ background: 'var(--bg-2)', borderRadius: 16, overflow: 'hidden', minHeight: 420 }}>
+          <ComposableMap
+            projection="geoMercator"
+            projectionConfig={{ center: [127.8, 35.9], scale: 5200 }}
+            style={{ width: '100%', height: 'auto' }}
+            width={500}
+            height={560}
+          >
+            <Geographies geography={GEO_URL}>
+              {({ geographies }) =>
+                geographies.map(geo => {
+                  const key   = getRegionKey(geo.properties)
+                  const val   = regionData[key]?.[activeMetric] ?? metric.min
+                  const fill  = getColor(val, metric)
+                  const isActive = key === activeRegion
 
-        {/* 상세 패널 */}
-        <div>
+                  return (
+                    <Geography
+                      key={geo.rsmKey}
+                      geography={geo}
+                      fill={fill}
+                      stroke={isActive ? '#fff' : 'rgba(255,255,255,0.25)'}
+                      strokeWidth={isActive ? 2 : 0.6}
+                      style={{
+                        default:  { outline: 'none', opacity: isActive ? 1 : 0.88, cursor: 'pointer', transition: 'all 0.15s' },
+                        hover:    { outline: 'none', opacity: 1, filter: 'brightness(1.2)', cursor: 'pointer' },
+                        pressed:  { outline: 'none' },
+                      }}
+                      onMouseEnter={() => setHovered(key)}
+                      onMouseLeave={() => setHovered(null)}
+                      onClick={() => setSelected(s => s === key ? null : key)}
+                    />
+                  )
+                })
+              }
+            </Geographies>
+          </ComposableMap>
+        </div>
+
+        {/* 오른쪽 패널 */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* 선택 지역 상세 */}
           {info ? (
             <div style={{
               background: 'var(--card-bg)', border: '1px solid var(--card-border)',
               borderRadius: 16, padding: 20, animation: 'fadeUp 0.3s ease',
             }}>
-              <h3 style={{ fontSize: '1.2rem', marginBottom: 16, fontFamily: "'DM Serif Display', serif" }}>
-                {active}
+              <h3 style={{ fontSize: '1.15rem', marginBottom: 16, fontFamily: "'DM Serif Display', serif" }}>
+                📍 {activeRegion}
               </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {METRICS.map(m => (
-                  <div key={m.key}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>
+              {METRICS.map(m => {
+                const v = info[m.key]
+                const pct = m.key === 'ruralGap'
+                  ? ((v - m.min) / (m.max - m.min) * 100)
+                  : ((v - m.min) / (m.max - m.min) * 100)
+                return (
+                  <div key={m.key} style={{ marginBottom: 14 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                      <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>
                         {m.label}
                       </span>
-                      <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--purple-light)', fontFamily: "'Noto Sans KR', sans-serif" }}>
-                        {info[m.key]}{m.unit}
+                      <span style={{ fontSize: '0.88rem', fontWeight: 700, color: getColor(v, m), fontFamily: "'Noto Sans KR', sans-serif" }}>
+                        {v}{m.unit}
                       </span>
                     </div>
-                    <div style={{ height: 6, background: 'var(--bg-3)', borderRadius: 3, overflow: 'hidden' }}>
+                    <div style={{ height: 7, background: 'var(--bg-3)', borderRadius: 4, overflow: 'hidden' }}>
                       <div style={{
-                        height: '100%',
-                        width: `${m.key === 'ruralGap' ? (info[m.key] / 30 * 100) : info[m.key]}%`,
-                        background: m.key === 'ruralGap'
-                          ? 'linear-gradient(90deg, #00C9A7, #F5A623)'
-                          : 'linear-gradient(90deg, var(--purple), var(--teal))',
-                        borderRadius: 3, transition: 'width 0.5s ease',
-                      }} />
+                        height: '100%', width: `${Math.max(5, pct)}%`,
+                        background: getColor(v, m),
+                        borderRadius: 4, transition: 'width 0.5s ease',
+                      }}/>
                     </div>
                   </div>
-                ))}
-              </div>
+                )
+              })}
             </div>
           ) : (
             <div style={{
               background: 'var(--card-bg)', border: '1px solid var(--card-border)',
-              borderRadius: 16, padding: 20, textAlign: 'center',
-              color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.9rem',
+              borderRadius: 16, padding: 24, textAlign: 'center',
+              color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.88rem',
+              lineHeight: 1.8,
             }}>
-              지도에서 지역을 클릭하면<br />상세 통계를 볼 수 있습니다
+              🗺️<br/>지도에서 지역을 클릭하면<br/>상세 통계를 볼 수 있습니다
             </div>
           )}
 
           {/* 범례 */}
-          <div style={{ marginTop: 16, background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 12, padding: 16 }}>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 8, fontFamily: "'Noto Sans KR', sans-serif" }}>
-              {activeMetric === 'ruralGap' ? '낮음(좋음) → 높음(나쁨)' : '낮음 → 높음'}
+          <div style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 12, padding: 16 }}>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: 10, fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 600 }}>
+              {metric.label} 범례
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{
-                flex: 1, height: 8, borderRadius: 4,
-                background: activeMetric === 'ruralGap'
-                  ? 'linear-gradient(90deg, #00C9A7, #F5A623)'
-                  : 'linear-gradient(90deg, #7C3AED, #00C9A7)',
-              }} />
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>높음</span>
+            <div style={{ display: 'flex', gap: 3, marginBottom: 6 }}>
+              {palette.map((c, i) => (
+                <div key={i} style={{ flex: 1, height: 14, background: c, borderRadius: 3 }}/>
+              ))}
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              {(activeMetric === 'ruralGap' ? LEGEND_LABELS_GAP : LEGEND_LABELS_SCORE).map((l, i) => (
+                <span key={i} style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>
+                  {l}
+                </span>
+              ))}
+            </div>
+
+            {/* 전국 평균 */}
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--card-border)' }}>
+              <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", marginBottom: 4 }}>전국 평균</p>
+              {Object.entries(regionData).reduce((acc, [, v]) => {
+                METRICS.forEach(m => { acc[m.key] = (acc[m.key] || 0) + v[m.key] })
+                return acc
+              }, {})[activeMetric] && (
+                <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--purple-light)', fontFamily: "'DM Serif Display', serif" }}>
+                  {(Object.values(regionData).reduce((s, v) => s + v[activeMetric], 0) / 17).toFixed(1)}{metric.unit}
+                </span>
+              )}
             </div>
           </div>
         </div>

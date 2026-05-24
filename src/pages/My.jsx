@@ -1,10 +1,72 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useHistory } from '../hooks/useHistory'
+import { useProfile } from '../hooks/useProfile'
+import { useAuth } from '../hooks/useAuth'
 import StatCard from '../components/StatCard'
+
+const GENDER_OPTIONS = ['선택 안 함', '남성', '여성', '기타']
+const GRADE_OPTIONS = ['선택 안 함', '상위 10%', '상위 30%', '중위권', '하위 30%', '하위 10%']
+
+const inputStyle = {
+  width: '100%', padding: '10px 14px',
+  background: 'var(--bg-3)', border: '1px solid var(--card-border)',
+  borderRadius: 10, color: 'var(--text-primary)',
+  fontSize: '0.9rem', fontFamily: "'Noto Sans KR', sans-serif",
+  outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box',
+}
+
+const selectStyle = {
+  ...inputStyle, cursor: 'pointer', appearance: 'none',
+}
+
+const textareaStyle = {
+  ...inputStyle, resize: 'vertical', minHeight: 72,
+}
+
+const labelStyle = {
+  fontSize: '0.75rem', color: 'var(--text-muted)',
+  fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 600,
+  marginBottom: 5, display: 'block',
+}
+
+function Field({ label, children }) {
+  return (
+    <div>
+      <label style={labelStyle}>{label}</label>
+      {children}
+    </div>
+  )
+}
 
 export default function My() {
   const { history, remove, clear, stats } = useHistory()
+  const { user } = useAuth()
+  const { profile, save, loading } = useProfile(user)
   const navigate = useNavigate()
+
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState({})
+
+  function startEdit() {
+    setDraft({ ...profile })
+    setEditing(true)
+  }
+
+  async function handleSave() {
+    await save(draft)
+    setEditing(false)
+  }
+
+  function handleCancel() {
+    setDraft({})
+    setEditing(false)
+  }
+
+  const val = (k) => (editing ? draft : profile)[k] || ''
+  const set = (k) => (e) => setDraft(d => ({ ...d, [k]: e.target.value }))
+
+  const hasProfile = Object.values(profile).some(v => v && v !== '')
 
   return (
     <div className="page" style={{ maxWidth: 900, margin: '0 auto', padding: '80px 20px 60px' }}>
@@ -15,6 +77,128 @@ export default function My() {
         <p style={{ color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>
           지금까지 분석한 나비효과 히스토리
         </p>
+      </div>
+
+      {/* Profile Section */}
+      <div style={{
+        background: 'var(--card-bg)', border: '1px solid var(--card-border)',
+        borderRadius: 20, padding: 28, marginBottom: 32, animation: 'fadeUp 0.4s ease',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div>
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.2rem', marginBottom: 4 }}>
+              내 프로필
+            </h2>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>
+              {user ? '정보가 자동으로 저장됩니다' : '로그인하면 정보가 저장됩니다'}
+            </p>
+          </div>
+          {!editing ? (
+            <button onClick={startEdit} style={{
+              padding: '8px 18px', borderRadius: 50, fontSize: '0.82rem',
+              fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 600,
+              background: 'linear-gradient(135deg, var(--purple), var(--teal))',
+              color: '#fff', border: 'none', cursor: 'pointer',
+            }}>
+              {hasProfile ? '✏️ 수정' : '+ 입력하기'}
+            </button>
+          ) : (
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={handleCancel} style={{
+                padding: '8px 16px', borderRadius: 50, fontSize: '0.82rem',
+                fontFamily: "'Noto Sans KR', sans-serif",
+                background: 'var(--bg-3)', border: '1px solid var(--card-border)',
+                color: 'var(--text-muted)', cursor: 'pointer',
+              }}>
+                취소
+              </button>
+              <button onClick={handleSave} style={{
+                padding: '8px 18px', borderRadius: 50, fontSize: '0.82rem',
+                fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 600,
+                background: 'linear-gradient(135deg, var(--purple), var(--teal))',
+                color: '#fff', border: 'none', cursor: 'pointer',
+              }}>
+                저장
+              </button>
+            </div>
+          )}
+        </div>
+
+        {loading ? (
+          <p style={{ color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.88rem' }}>불러오는 중...</p>
+        ) : editing ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+            <Field label="학교">
+              <input style={inputStyle} placeholder="예: ○○고등학교" value={val('school')} onChange={set('school')}
+                onFocus={e => e.target.style.borderColor = 'var(--purple)'}
+                onBlur={e => e.target.style.borderColor = 'var(--card-border)'} />
+            </Field>
+            <Field label="나이">
+              <input style={inputStyle} type="number" placeholder="예: 17" min={10} max={30}
+                value={val('age')} onChange={set('age')}
+                onFocus={e => e.target.style.borderColor = 'var(--purple)'}
+                onBlur={e => e.target.style.borderColor = 'var(--card-border)'} />
+            </Field>
+            <Field label="성별">
+              <select style={selectStyle} value={val('gender')} onChange={set('gender')}>
+                {GENDER_OPTIONS.map(o => <option key={o} value={o === '선택 안 함' ? '' : o}>{o}</option>)}
+              </select>
+            </Field>
+            <Field label="성적 수준">
+              <select style={selectStyle} value={val('grades')} onChange={set('grades')}>
+                {GRADE_OPTIONS.map(o => <option key={o} value={o === '선택 안 함' ? '' : o}>{o}</option>)}
+              </select>
+            </Field>
+            <Field label="희망 전공">
+              <input style={inputStyle} placeholder="예: 컴퓨터공학" value={val('desired_major')} onChange={set('desired_major')}
+                onFocus={e => e.target.style.borderColor = 'var(--purple)'}
+                onBlur={e => e.target.style.borderColor = 'var(--card-border)'} />
+            </Field>
+            <Field label="희망 진로">
+              <input style={inputStyle} placeholder="예: 소프트웨어 엔지니어" value={val('career_goal')} onChange={set('career_goal')}
+                onFocus={e => e.target.style.borderColor = 'var(--purple)'}
+                onBlur={e => e.target.style.borderColor = 'var(--card-border)'} />
+            </Field>
+            <Field label="잘하는 것">
+              <textarea style={textareaStyle} placeholder="예: 수학, 코딩, 발표" value={val('strengths')} onChange={set('strengths')}
+                onFocus={e => e.target.style.borderColor = 'var(--purple)'}
+                onBlur={e => e.target.style.borderColor = 'var(--card-border)'} />
+            </Field>
+            <Field label="못하는 것">
+              <textarea style={textareaStyle} placeholder="예: 체육, 영어 말하기" value={val('weaknesses')} onChange={set('weaknesses')}
+                onFocus={e => e.target.style.borderColor = 'var(--purple)'}
+                onBlur={e => e.target.style.borderColor = 'var(--card-border)'} />
+            </Field>
+          </div>
+        ) : hasProfile ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14 }}>
+            {[
+              { label: '학교', key: 'school', icon: '🏫' },
+              { label: '나이', key: 'age', icon: '🎂', suffix: '세' },
+              { label: '성별', key: 'gender', icon: '👤' },
+              { label: '성적', key: 'grades', icon: '📊' },
+              { label: '희망 전공', key: 'desired_major', icon: '📚' },
+              { label: '희망 진로', key: 'career_goal', icon: '🎯' },
+              { label: '잘하는 것', key: 'strengths', icon: '💪' },
+              { label: '못하는 것', key: 'weaknesses', icon: '📝' },
+            ].filter(({ key }) => profile[key]).map(({ label, key, icon, suffix }) => (
+              <div key={key} style={{
+                background: 'var(--bg-2)', borderRadius: 12, padding: '12px 14px',
+              }}>
+                <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", marginBottom: 4 }}>
+                  {icon} {label}
+                </p>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 600, lineHeight: 1.4 }}>
+                  {profile[key]}{suffix || ''}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.88rem' }}>
+            프로필을 입력하면 맞춤 분석을 받을 수 있습니다
+          </div>
+        )}
       </div>
 
       {/* Stats */}
