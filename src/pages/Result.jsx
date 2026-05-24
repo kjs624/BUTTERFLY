@@ -9,6 +9,13 @@ function decodeShare(str) {
   try { return JSON.parse(decodeURIComponent(atob(str))) } catch { return null }
 }
 
+// stat 값이 긴 문자열로 올 경우 앞의 수치 부분만 추출
+function shortStat(val, fallback) {
+  if (!val) return fallback
+  const match = String(val).match(/^([+\-]?\d+\.?\d*\s*%p?|[+\-]?\d+\.?\d*)/)
+  return match ? match[1] : String(val).slice(0, 8)
+}
+
 export default function Result() {
   const { state } = useLocation()
   const [searchParams] = useSearchParams()
@@ -44,7 +51,11 @@ export default function Result() {
       {/* Summary */}
       {result.summary && (
         <div className="card" style={{ marginBottom: 32, background: 'rgba(124,58,237,0.1)', borderColor: 'rgba(124,58,237,0.3)', animation: 'fadeUp 0.4s ease 0.1s both' }}>
-          <p style={{ lineHeight: 1.8, fontSize: '1rem', fontFamily: "'Noto Sans KR', sans-serif" }}>{result.summary}</p>
+          {result.summary.split('\n').filter(Boolean).map((line, i) => (
+            <p key={i} style={{ lineHeight: 1.85, fontSize: '1rem', fontFamily: "'Noto Sans KR', sans-serif", marginBottom: i < result.summary.split('\n').filter(Boolean).length - 1 ? 10 : 0 }}>
+              {line}
+            </p>
+          ))}
         </div>
       )}
 
@@ -63,9 +74,9 @@ export default function Result() {
 
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 40 }}>
-        <StatCard label="만족도 변화" value={result.stat1 || '+12%'} icon="😊" color="var(--purple-light)" />
-        <StatCard label="진로 연결률" value={result.stat2 || '41%'} icon="🎯" color="var(--teal)" />
-        <StatCard label="핵심 수치" value={result.stat3 || '+18%p'} icon="📈" color="var(--mint)" sub="자기효능감" />
+        <StatCard label="만족도 변화" value={shortStat(result.stat1, '+12%')} icon="😊" color="var(--purple-light)" />
+        <StatCard label="진로 연결률" value={shortStat(result.stat2, '41%')} icon="🎯" color="var(--teal)" />
+        <StatCard label="자기효능감 상승" value={shortStat(result.stat3, '+18%p')} icon="📈" color="var(--mint)" />
       </div>
 
       {/* Advice */}
