@@ -62,8 +62,8 @@ export default function Select() {
   const handleAnalyze = async () => {
     try {
       const result = await analyze(values)
-      save({ selections: values, result })
-      navigate('/result', { state: { result, selections: values } })
+      const analysisId = await save({ selections: values, result })
+      navigate('/result', { state: { result, selections: values, analysisId } })
     } catch (e) {
       alert('분석 중 오류가 발생했습니다: ' + e.message)
     }

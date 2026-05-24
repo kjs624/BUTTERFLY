@@ -1,5 +1,6 @@
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import ButterflyLogo from './ButterflyLogo'
+import { useAuth } from '../hooks/useAuth'
 
 const navItems = [
   { to: '/', label: '홈', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
@@ -9,7 +10,19 @@ const navItems = [
 ]
 
 export default function Navbar({ theme, onToggleTheme }) {
-  const location = useLocation()
+  const { user, signOut, enabled } = useAuth()
+  const navigate = useNavigate()
+
+  const handleAuth = async () => {
+    if (user) {
+      await signOut()
+      navigate('/')
+    } else {
+      navigate('/auth')
+    }
+  }
+
+  const shortEmail = user?.email?.split('@')[0] ?? ''
 
   return (
     <>
@@ -39,13 +52,35 @@ export default function Navbar({ theme, onToggleTheme }) {
           ))}
         </div>
 
-        <button onClick={onToggleTheme} style={{
-          width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'var(--card-bg)', border: '1px solid var(--card-border)',
-          color: 'var(--text-secondary)', fontSize: '1.1rem', cursor: 'pointer',
-        }}>
-          {theme === 'dark' ? '☀️' : '🌙'}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {enabled && (
+            <button
+              onClick={handleAuth}
+              style={{
+                padding: '7px 16px', borderRadius: 50,
+                fontFamily: "'Noto Sans KR', sans-serif",
+                fontSize: '0.82rem', fontWeight: 600,
+                background: user
+                  ? 'var(--card-bg)'
+                  : 'linear-gradient(135deg, var(--purple), var(--teal))',
+                border: user ? '1px solid var(--card-border)' : 'none',
+                color: user ? 'var(--text-secondary)' : '#fff',
+                cursor: 'pointer', transition: 'all 0.2s',
+                maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}
+            >
+              {user ? `${shortEmail} · 로그아웃` : '🦋 로그인'}
+            </button>
+          )}
+
+          <button onClick={onToggleTheme} style={{
+            width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'var(--card-bg)', border: '1px solid var(--card-border)',
+            color: 'var(--text-secondary)', fontSize: '1.1rem', cursor: 'pointer',
+          }}>
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+        </div>
       </nav>
 
       {/* Mobile bottom tab bar */}

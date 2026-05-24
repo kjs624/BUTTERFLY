@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
+import { supabase, supabaseEnabled } from '../lib/supabase'
 
-export default function ChatBot({ analysisResult, selections }) {
+export default function ChatBot({ analysisResult, selections, analysisId }) {
   const [messages, setMessages] = useState([
     { role: 'assistant', content: '안녕하세요! 나비효과에 대해 궁금한 것을 질문해보세요. 예: "동아리를 바꾸면 어떻게 될까요?"' }
   ])
@@ -11,6 +12,30 @@ export default function ChatBot({ analysisResult, selections }) {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  // Load saved chat history when analysisId is available
+  useEffect(() => {
+    if (!supabaseEnabled || !analysisId) return
+    supabase
+      .from('chat_messages')
+      .select('role, content')
+      .eq('analysis_id', analysisId)
+      .order('created_at', { ascending: true })
+      .then(({ data }) => {
+        if (data && data.length > 0) setMessages(data)
+      })
+  }, [analysisId])
+
+  const saveMessages = async (userMsg, assistantMsg) => {
+    if (!supabaseEnabled || !analysisId) return
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData.session?.user?.id
+    if (!userId) return
+    await supabase.from('chat_messages').insert([
+      { analysis_id: analysisId, user_id: userId, role: 'user', content: userMsg },
+      { analysis_id: analysisId, user_id: userId, role: 'assistant', content: assistantMsg },
+    ])
+  }
 
   const send = async () => {
     const text = input.trim()
@@ -32,7 +57,8 @@ export default function ChatBot({ analysisResult, selections }) {
       if (!res.ok) throw new Error('서버 오류')
       const data = await res.json()
       setMessages(prev => [...prev, { role: 'assistant', content: data.content }])
-    } catch (e) {
+      await saveMessages(text, data.content)
+    } catch {
       setMessages(prev => [...prev, { role: 'assistant', content: '죄송해요, 일시적인 오류가 발생했습니다. 다시 시도해주세요.' }])
     } finally {
       setLoading(false)
@@ -46,6 +72,9 @@ export default function ChatBot({ analysisResult, selections }) {
       </h2>
       <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: 20, fontFamily: "'Noto Sans KR', sans-serif" }}>
         분석 결과를 기반으로 궁금한 점을 물어보세요
+        {supabaseEnabled && analysisId && (
+          <span style={{ marginLeft: 8, color: 'var(--mint)', fontSize: '0.8rem' }}>· 대화가 자동 저장됩니다</span>
+        )}
       </p>
 
       <div style={{
@@ -55,11 +84,10 @@ export default function ChatBot({ analysisResult, selections }) {
         {/* Messages */}
         <div style={{ height: 320, overflowY: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
           {messages.map((m, i) => (
-            <div key={i} style={{
-              display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start',
-            }}>
+            <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
               <div style={{
-                maxWidth: '80%', padding: '12px 16px', borderRadius: m.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                maxWidth: '80%', padding: '12px 16px',
+                borderRadius: m.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                 background: m.role === 'user' ? 'linear-gradient(135deg, var(--purple), var(--teal))' : 'var(--bg-3)',
                 color: m.role === 'user' ? '#fff' : 'var(--text-primary)',
                 fontSize: '0.9rem', lineHeight: 1.6,

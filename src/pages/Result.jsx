@@ -26,6 +26,7 @@ export default function Result() {
 
   const result = sharedData?.result || state?.result
   const selections = sharedData?.selections || state?.selections
+  const analysisId = state?.analysisId ?? null
 
   if (!result) {
     return (
@@ -106,7 +107,7 @@ export default function Result() {
 
       {/* STEP 2 — ChatBot */}
       <div style={{ marginBottom: 60 }}>
-        <ChatBot analysisResult={result} selections={selections} />
+        <ChatBot analysisResult={result} selections={selections} analysisId={analysisId} />
       </div>
 
       <hr style={{ border: 'none', borderTop: '1px solid var(--card-border)', margin: '48px 0' }} />

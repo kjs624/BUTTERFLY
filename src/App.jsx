@@ -6,6 +6,7 @@ import Select from './pages/Select'
 import Result from './pages/Result'
 import Map from './pages/Map'
 import My from './pages/My'
+import Auth from './pages/Auth'
 
 export default function App() {
   const { theme, toggle } = useTheme()
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/result" element={<Result />} />
         <Route path="/map" element={<Map />} />
         <Route path="/my" element={<My />} />
+        <Route path="/auth" element={<Auth />} />
       </Routes>
     </BrowserRouter>
   )
