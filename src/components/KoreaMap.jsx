@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { geoMercator, geoPath } from 'd3-geo'
+import { geoMercator, geoPath, geoCentroid } from 'd3-geo'
 import { regionData } from '../data/publicData'
 import koreaGeo from '../data/koreaGeo.json'
 
@@ -22,26 +22,139 @@ function getColor(value, metric) {
 const LEGEND_LABELS_SCORE = ['최하', '하', '중하', '중', '중상', '상', '최상']
 const LEGEND_LABELS_GAP   = ['격차없음', '', '', '중간', '', '', '격차큼']
 
-// 소도시: 지도에서 레이블을 더 작게 표시
 const SMALL_KEYS = new Set(['서울','인천','세종','대전','광주','대구','울산','부산'])
 
-const W = 500, H = 580
+const W = 480, H = 560
+
+// 제주 분리
+const mainlandFeatures = koreaGeo.features.filter(f => f.properties.key !== '제주')
+const jejuFeature      = koreaGeo.features.find(f => f.properties.key === '제주')
+const mainlandGeo      = { type: 'FeatureCollection', features: mainlandFeatures }
 
 export default function KoreaMap() {
   const [activeMetric, setActiveMetric] = useState('clubDiversity')
   const [hovered,  setHovered]  = useState(null)
   const [selected, setSelected] = useState(null)
 
+  // 본토 projection — 아래 여백(제주 공간) 80px 확보
   const projection = useMemo(() =>
-    geoMercator().fitExtent([[20, 20], [W - 20, H - 20]], koreaGeo),
-    []
-  )
+    geoMercator().fitExtent([[20, 20], [W - 20, H - 90]], mainlandGeo),
+  [])
   const pathGen = useMemo(() => geoPath(projection), [projection])
+
+  // 제주 — 같은 projection으로 경도/위도 그대로, 단 화면 아래에 띄워서 표시
+  // 제주 실제 centroid 화면 좌표
+  const [jejuScreenX, jejuScreenY] = useMemo(() => {
+    if (!jejuFeature) return [0, 0]
+    const [lng, lat] = geoCentroid(jejuFeature)
+    return projection([lng, lat])
+  }, [projection])
+
+  // 제주 path (같은 projection)
+  const jejuPath = useMemo(() => pathGen(jejuFeature), [pathGen])
+
+  // 제주를 화면 하단 중앙에 오프셋해서 재배치
+  // 본토 최남단 y좌표 구하기
+  const mainlandBottomY = useMemo(() => {
+    let maxY = 0
+    mainlandFeatures.forEach(f => {
+      const [[x1,y1],[x2,y2]] = pathGen.bounds(f)
+      if (y2 > maxY) maxY = y2
+    })
+    return maxY
+  }, [pathGen])
+
+  const jejuTargetY = mainlandBottomY + 45
+  const jejuTargetX = W / 2
+
+  // 제주 SVG transform: 현재 centroid → 목표 위치로 이동
+  const jejuTransform = `translate(${jejuTargetX - jejuScreenX}, ${jejuTargetY - jejuScreenY})`
 
   const metric       = METRICS.find(m => m.key === activeMetric)
   const activeRegion = selected || hovered
   const info         = activeRegion ? regionData[activeRegion] : null
   const palette      = activeMetric === 'ruralGap' ? PALETTE_GAP : PALETTE_SCORE
+
+  function renderFeature(feature) {
+    const key      = feature.properties.key
+    const val      = regionData[key]?.[activeMetric] ?? metric.min
+    const fill     = getColor(val, metric)
+    const isActive = key === activeRegion
+    const d        = pathGen(feature)
+    const [cx, cy] = pathGen.centroid(feature)
+    const small    = SMALL_KEYS.has(key)
+    const fontSize = small ? 7.5 : 11
+
+    return (
+      <g
+        key={key}
+        onMouseEnter={() => setHovered(key)}
+        onMouseLeave={() => setHovered(null)}
+        onClick={() => setSelected(s => s === key ? null : key)}
+        style={{ cursor: 'pointer' }}
+      >
+        <path
+          d={d}
+          fill={fill}
+          stroke={isActive ? '#fff' : 'rgba(255,255,255,0.22)'}
+          strokeWidth={isActive ? 2 : 0.6}
+          opacity={isActive ? 1 : hovered && hovered !== key ? 0.65 : 0.88}
+        />
+        {!isNaN(cx) && !isNaN(cy) && (
+          <text
+            x={cx} y={cy + fontSize * 0.38}
+            textAnchor="middle"
+            fontSize={fontSize}
+            fontFamily="'Noto Sans KR', sans-serif"
+            fontWeight={700}
+            fill="#fff"
+            filter="url(#lbl-shadow)"
+            style={{ pointerEvents: 'none', userSelect: 'none' }}
+          >
+            {key}
+          </text>
+        )}
+      </g>
+    )
+  }
+
+  // 제주 별도 렌더
+  function renderJeju() {
+    if (!jejuFeature) return null
+    const key      = '제주'
+    const val      = regionData[key]?.[activeMetric] ?? metric.min
+    const fill     = getColor(val, metric)
+    const isActive = key === activeRegion
+    return (
+      <g
+        transform={jejuTransform}
+        onMouseEnter={() => setHovered(key)}
+        onMouseLeave={() => setHovered(null)}
+        onClick={() => setSelected(s => s === key ? null : key)}
+        style={{ cursor: 'pointer' }}
+      >
+        <path
+          d={jejuPath}
+          fill={fill}
+          stroke={isActive ? '#fff' : 'rgba(255,255,255,0.22)'}
+          strokeWidth={isActive ? 2 : 0.6}
+          opacity={isActive ? 1 : hovered && hovered !== key ? 0.65 : 0.88}
+        />
+        <text
+          x={jejuScreenX} y={jejuScreenY + 4}
+          textAnchor="middle"
+          fontSize={10}
+          fontFamily="'Noto Sans KR', sans-serif"
+          fontWeight={700}
+          fill="#fff"
+          filter="url(#lbl-shadow)"
+          style={{ pointerEvents: 'none', userSelect: 'none' }}
+        >
+          제주
+        </text>
+      </g>
+    )
+  }
 
   return (
     <div>
@@ -64,63 +177,23 @@ export default function KoreaMap() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 24, alignItems: 'start' }}>
-        {/* 지도 */}
+        {/* 지도 SVG */}
         <div style={{ background: 'var(--bg-2)', borderRadius: 16, overflow: 'hidden' }}>
           <svg
             viewBox={`0 0 ${W} ${H}`}
             style={{ width: '100%', height: 'auto', display: 'block' }}
           >
             <defs>
-              {/* 레이블 가독성을 위한 텍스트 그림자 */}
               <filter id="lbl-shadow" x="-30%" y="-30%" width="160%" height="160%">
-                <feDropShadow dx="0" dy="0" stdDeviation="2" floodColor="#000" floodOpacity="0.85"/>
+                <feDropShadow dx="0" dy="0" stdDeviation="2" floodColor="#000" floodOpacity="0.9"/>
               </filter>
             </defs>
 
-            {koreaGeo.features.map(feature => {
-              const key      = feature.properties.key
-              const val      = regionData[key]?.[activeMetric] ?? metric.min
-              const fill     = getColor(val, metric)
-              const isActive = key === activeRegion
-              const d        = pathGen(feature)
-              const [cx, cy] = pathGen.centroid(feature)
-              const small    = SMALL_KEYS.has(key)
-              const fontSize = small ? 7.5 : 12
+            {/* 본토 */}
+            {mainlandFeatures.map(renderFeature)}
 
-              return (
-                <g
-                  key={key}
-                  onMouseEnter={() => setHovered(key)}
-                  onMouseLeave={() => setHovered(null)}
-                  onClick={() => setSelected(s => s === key ? null : key)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <path
-                    d={d}
-                    fill={fill}
-                    stroke={isActive ? '#fff' : 'rgba(255,255,255,0.28)'}
-                    strokeWidth={isActive ? 2.5 : 0.7}
-                    opacity={isActive ? 1 : hovered && hovered !== key ? 0.72 : 0.90}
-                  />
-                  {/* 모든 지역 레이블 표시 — 그림자로 가독성 확보 */}
-                  {!isNaN(cx) && !isNaN(cy) && (
-                    <text
-                      x={cx}
-                      y={cy + fontSize * 0.38}
-                      textAnchor="middle"
-                      fontSize={fontSize}
-                      fontFamily="'Noto Sans KR', sans-serif"
-                      fontWeight={700}
-                      fill="#ffffff"
-                      filter="url(#lbl-shadow)"
-                      style={{ pointerEvents: 'none', userSelect: 'none' }}
-                    >
-                      {key}
-                    </text>
-                  )}
-                </g>
-              )
-            })}
+            {/* 제주 — 본토 아래에 분리하여 표시 */}
+            {renderJeju()}
           </svg>
         </div>
 
