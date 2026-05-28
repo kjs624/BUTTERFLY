@@ -3,7 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { useHistory } from '../hooks/useHistory'
 import { useProfile } from '../hooks/useProfile'
 import { useAuth } from '../hooks/useAuth'
+import { useCareerTest } from '../hooks/useCareerTest'
 import StatCard from '../components/StatCard'
+
+const CAREER_VERSION_INFO = {
+  1: { name: '직업흥미검사 H형', icon: '🔍', badge: 'V1', color: 'var(--purple)' },
+  2: { name: '직업흥미검사 K형', icon: '🎯', badge: 'V2', color: 'var(--teal)' },
+}
 
 const GENDER_OPTIONS = ['선택 안 함', '남성', '여성', '기타']
 const GRADE_OPTIONS = ['선택 안 함', '상위 10%', '상위 30%', '중위권', '하위 30%', '하위 10%']
@@ -43,6 +49,7 @@ export default function My() {
   const { history, remove, clear, stats } = useHistory()
   const { user } = useAuth()
   const { profile, save, loading } = useProfile(user)
+  const { results: careerResults, clearResult } = useCareerTest(user)
   const navigate = useNavigate()
 
   const [editing, setEditing] = useState(false)
@@ -202,9 +209,145 @@ export default function My() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 40 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
         <StatCard label="총 분석 횟수" value={stats.total} unit="회" icon="🦋" color="var(--purple-light)" />
         <StatCard label="가장 많이 선택한 동아리" value={stats.topClub} unit="" icon="🎭" color="var(--teal)" />
+      </div>
+
+      {/* 진로 심리 검사 섹션 */}
+      <div style={{
+        background: 'var(--card-bg)', border: '1px solid var(--card-border)',
+        borderRadius: 20, padding: 28, marginBottom: 32, animation: 'fadeUp 0.4s ease',
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div>
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.2rem', marginBottom: 4 }}>
+              진로 심리 검사
+            </h2>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>
+              커리어넷 직업흥미검사 · V1(H형) · V2(K형)
+            </p>
+          </div>
+          <button onClick={() => navigate('/career-test')} style={{
+            padding: '8px 18px', borderRadius: 50, fontSize: '0.82rem',
+            fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 600,
+            background: 'linear-gradient(135deg, var(--purple), var(--teal))',
+            color: '#fff', border: 'none', cursor: 'pointer',
+            transition: 'opacity 0.2s',
+          }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+          >
+            + 검사하기
+          </button>
+        </div>
+
+        {Object.keys(careerResults).length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '24px 0' }}>
+            <p style={{ color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.88rem', marginBottom: 16 }}>
+              아직 진로 심리 검사를 하지 않았습니다
+            </p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+              {[1, 2].map(v => {
+                const info = CAREER_VERSION_INFO[v]
+                return (
+                  <button key={v} onClick={() => navigate(`/career-test`)} style={{
+                    padding: '10px 20px', borderRadius: 12, cursor: 'pointer',
+                    fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.85rem', fontWeight: 600,
+                    border: `1.5px solid ${info.color}`,
+                    background: 'transparent', color: info.color, transition: 'all 0.2s',
+                  }}
+                    onMouseEnter={e => { e.currentTarget.style.background = info.color; e.currentTarget.style.color = '#fff' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = info.color }}
+                  >
+                    {info.icon} {info.name} 시작
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {[1, 2].map(v => {
+              const info = CAREER_VERSION_INFO[v]
+              const result = careerResults[v]
+              return (
+                <div key={v} style={{
+                  background: 'var(--bg-2)', borderRadius: 14, padding: '16px 18px',
+                  border: result ? `1px solid ${info.color}33` : '1px solid var(--card-border)',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  flexWrap: 'wrap', gap: 12,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontSize: '1.5rem' }}>{info.icon}</span>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                        <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 700, fontSize: '0.9rem' }}>
+                          {info.name}
+                        </span>
+                        <span style={{
+                          padding: '2px 8px', borderRadius: 99, fontSize: '0.7rem', fontWeight: 700,
+                          background: info.color, color: '#fff', fontFamily: "'Noto Sans KR', sans-serif",
+                        }}>
+                          {info.badge}
+                        </span>
+                      </div>
+                      {result ? (
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>
+                          완료 · {new Date(result.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>
+                          미완료
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    {result?.url && (
+                      <a href={result.url} target="_blank" rel="noopener noreferrer" style={{
+                        padding: '7px 14px', borderRadius: 50, fontSize: '0.8rem', fontWeight: 600,
+                        fontFamily: "'Noto Sans KR', sans-serif", textDecoration: 'none',
+                        background: `${info.color}20`, color: info.color,
+                        border: `1px solid ${info.color}50`, transition: 'all 0.2s',
+                      }}
+                        onMouseEnter={e => { e.currentTarget.style.background = info.color; e.currentTarget.style.color = '#fff' }}
+                        onMouseLeave={e => { e.currentTarget.style.background = `${info.color}20`; e.currentTarget.style.color = info.color }}
+                      >
+                        결과 보기
+                      </a>
+                    )}
+                    <button onClick={() => navigate(`/career-test`)} style={{
+                      padding: '7px 14px', borderRadius: 50, fontSize: '0.8rem', fontWeight: 600,
+                      fontFamily: "'Noto Sans KR', sans-serif", cursor: 'pointer',
+                      background: 'var(--bg-3)', border: '1px solid var(--card-border)',
+                      color: 'var(--text-secondary)', transition: 'all 0.2s',
+                    }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = info.color; e.currentTarget.style.color = info.color }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--card-border)'; e.currentTarget.style.color = 'var(--text-secondary)' }}
+                    >
+                      🔄 재검사
+                    </button>
+                    {result && (
+                      <button onClick={() => clearResult(v)} style={{
+                        padding: '7px 12px', borderRadius: 50, fontSize: '0.78rem',
+                        fontFamily: "'Noto Sans KR', sans-serif", cursor: 'pointer',
+                        background: 'transparent', border: '1px solid var(--card-border)',
+                        color: 'var(--text-muted)', transition: 'all 0.2s',
+                      }}
+                        onMouseEnter={e => { e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.color = '#ef4444' }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--card-border)'; e.currentTarget.style.color = 'var(--text-muted)' }}
+                      >
+                        삭제
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* History list */}

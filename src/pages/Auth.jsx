@@ -40,7 +40,7 @@ export default function Auth() {
       } else {
         const { error } = await signUp(email, password)
         if (error) throw error
-        setMessage('가입 확인 이메일을 보냈습니다. 메일함을 확인해주세요.')
+        navigate('/career-test?new=true')
       }
     } catch (err) {
       const msg = err.message || ''
@@ -191,9 +191,35 @@ export default function Auth() {
           </button>
         </form>
 
+        {/* 구분선 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 20, marginBottom: 16 }}>
+          <div style={{ flex: 1, height: 1, background: 'var(--card-border)' }} />
+          <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontFamily: "'Noto Sans KR', sans-serif", whiteSpace: 'nowrap' }}>
+            또는
+          </span>
+          <div style={{ flex: 1, height: 1, background: 'var(--card-border)' }} />
+        </div>
+
+        {/* 비회원으로 시작 */}
+        <button
+          onClick={() => navigate('/career-test?guest=true')}
+          style={{
+            width: '100%', padding: '13px', borderRadius: 12,
+            fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.9rem', fontWeight: 600,
+            background: 'transparent', border: '1.5px dashed var(--card-border)',
+            color: 'var(--text-muted)', cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.color = 'var(--purple-light)' }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--card-border)'; e.currentTarget.style.color = 'var(--text-muted)' }}
+        >
+          🔍 비회원으로 진로 심리 검사 시작
+        </button>
+
         <button onClick={() => navigate(-1)} style={{
-          width: '100%', marginTop: 16, padding: '10px',
-          color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.85rem',
+          width: '100%', marginTop: 10, padding: '8px',
+          color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.82rem',
+          background: 'none', border: 'none', cursor: 'pointer',
         }}>
           ← 돌아가기
         </button>

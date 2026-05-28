@@ -8,6 +8,7 @@ import Map from './pages/Map'
 import My from './pages/My'
 import Auth from './pages/Auth'
 import AuthCallback from './pages/AuthCallback'
+import CareerTest from './pages/CareerTest'
 
 export default function App() {
   const { theme, toggle } = useTheme()
@@ -23,6 +24,7 @@ export default function App() {
         <Route path="/my" element={<My />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/career-test" element={<CareerTest />} />
       </Routes>
     </BrowserRouter>
   )
