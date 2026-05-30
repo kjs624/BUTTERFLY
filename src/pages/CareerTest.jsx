@@ -226,13 +226,23 @@ export default function CareerTest() {
 
       const rawResult = data.result || {}
 
-      // 커리어넷은 url 필드가 다양한 위치에 있을 수 있음
-      function extractUrl(obj) {
-        if (!obj || typeof obj !== 'object') return ''
-        return obj.url || obj.URL || obj.resultUrl || obj.RESULT_URL ||
-               obj.RESULT?.url || obj.RESULT?.URL || ''
+      // 전체 응답 구조 로깅 (디버깅용)
+      console.log('[CareerTest] 전체 응답:', JSON.stringify(data, null, 2))
+
+      // 재귀적으로 http URL 찾기
+      function findUrlRecursive(obj, depth = 0) {
+        if (depth > 5 || !obj || typeof obj !== 'object') return ''
+        for (const key of Object.keys(obj)) {
+          const val = obj[key]
+          if (typeof val === 'string' && val.startsWith('http')) return val
+          if (typeof val === 'object' && val !== null) {
+            const found = findUrlRecursive(val, depth + 1)
+            if (found) return found
+          }
+        }
+        return ''
       }
-      const url = extractUrl(rawResult)
+      const url = findUrlRecursive(rawResult) || findUrlRecursive(data)
       setResultUrl(url)
       setResultData(rawResult)
 
@@ -748,6 +758,22 @@ export default function CareerTest() {
 
           {/* 인앱 결과 요약 */}
           {resultData && <ResultSummaryCard result={resultData} version={version} onView={() => setShowViewer(true)} />}
+
+          {/* 임시 디버그 패널 — API 응답 구조 확인용 */}
+          {resultData && (
+            <details style={{ ...card, marginBottom: 20, fontSize: '0.75rem' }}>
+              <summary style={{ cursor: 'pointer', fontFamily: "'Noto Sans KR', sans-serif", color: 'var(--text-muted)', marginBottom: 8 }}>
+                🛠 디버그: API 응답 구조 (개발자용)
+              </summary>
+              <pre style={{
+                background: 'var(--bg-3)', borderRadius: 8, padding: 12, overflowX: 'auto',
+                fontFamily: 'monospace', fontSize: '0.7rem', color: 'var(--text-secondary)',
+                maxHeight: 300, overflowY: 'auto', marginTop: 8,
+              }}>
+                {JSON.stringify(resultData, null, 2)}
+              </pre>
+            </details>
+          )}
 
           {/* 다른 버전도 해보기 */}
           <div style={{ ...card, marginBottom: 20 }}>
