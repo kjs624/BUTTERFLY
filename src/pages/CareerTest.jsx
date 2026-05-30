@@ -452,44 +452,93 @@ export default function CareerTest() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 24 }}>
             {currentQs.map((q, i) => {
               const globalIdx = page * PER_PAGE + i
-              const qText = q.question || q.qText || q.QUESTION || q.qtext || `문항 ${globalIdx + 1}`
-              const qNum = q.qnum || q.no || q.QNUM || (globalIdx + 1)
+              const qNum = q.qitemNo || q.qnum || q.no || (globalIdx + 1)
               const selected = answers[globalIdx]
 
+              // H형(version=1): 2지선다 — answer01 vs answer02
+              if (version === 1) {
+                const choiceA = q.answer01 || ''
+                const choiceB = q.answer02 || ''
+                const descA = q.answer03 || ''
+                const descB = q.answer04 || ''
+                return (
+                  <div key={globalIdx} style={{
+                    ...card,
+                    borderColor: selected > 0 ? 'rgba(124,58,237,0.3)' : 'var(--card-border)',
+                    transition: 'border-color 0.2s',
+                  }}>
+                    <p style={{
+                      fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.82rem',
+                      color: 'var(--text-muted)', marginBottom: 14,
+                    }}>
+                      <span style={{ color: 'var(--purple-light)', fontWeight: 700, marginRight: 6 }}>{qNum}.</span>
+                      두 가치 중 나에게 더 중요한 것을 선택하세요
+                    </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      {[{ label: choiceA, desc: descA, val: 1 }, { label: choiceB, desc: descB, val: 2 }].map(choice => (
+                        <button key={choice.val} onClick={() => setAnswer(globalIdx, choice.val)} style={{
+                          padding: '16px 12px', borderRadius: 14, cursor: 'pointer', textAlign: 'center',
+                          fontFamily: "'Noto Sans KR', sans-serif",
+                          border: `2px solid ${selected === choice.val ? 'var(--purple)' : 'var(--card-border)'}`,
+                          background: selected === choice.val ? 'rgba(124,58,237,0.12)' : 'var(--bg-3)',
+                          transition: 'all 0.15s',
+                        }}
+                          onMouseEnter={e => selected !== choice.val && (e.currentTarget.style.borderColor = 'var(--purple-light)')}
+                          onMouseLeave={e => selected !== choice.val && (e.currentTarget.style.borderColor = 'var(--card-border)')}
+                        >
+                          <div style={{
+                            fontSize: '1rem', fontWeight: 700, marginBottom: 6,
+                            color: selected === choice.val ? 'var(--purple-light)' : 'var(--text-primary)',
+                          }}>
+                            {choice.label}
+                          </div>
+                          {choice.desc && (
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                              {choice.desc}
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )
+              }
+
+              // K형(version=2): 5점 리커트 — answer01~answer05 레이블 사용
+              const qText = q.question || `문항 ${globalIdx + 1}`
+              const likertLabels = [q.answer01, q.answer02, q.answer03, q.answer04, q.answer05]
+                .filter(Boolean)
+              const emojis = ['😞', '🙁', '😐', '😊', '😄']
               return (
                 <div key={globalIdx} style={{
                   ...card,
-                  borderColor: selected > 0 ? 'rgba(124,58,237,0.3)' : 'var(--card-border)',
+                  borderColor: selected > 0 ? 'rgba(8,145,178,0.3)' : 'var(--card-border)',
                   transition: 'border-color 0.2s',
                 }}>
                   <p style={{
                     fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.95rem', lineHeight: 1.7,
                     color: 'var(--text-primary)', marginBottom: 16,
                   }}>
-                    <span style={{ color: 'var(--purple-light)', fontWeight: 700, marginRight: 8 }}>
-                      {qNum}.
-                    </span>
+                    <span style={{ color: 'var(--teal)', fontWeight: 700, marginRight: 8 }}>{qNum}.</span>
                     {qText}
                   </p>
                   <div style={{ display: 'flex', gap: 6, justifyContent: 'space-between' }}>
-                    {LIKERT.map((label, val) => (
+                    {likertLabels.map((label, val) => (
                       <button key={val} onClick={() => setAnswer(globalIdx, val + 1)} style={{
                         flex: 1, padding: '10px 4px', borderRadius: 12, cursor: 'pointer',
                         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-                        border: `2px solid ${selected === val + 1 ? 'var(--purple)' : 'var(--card-border)'}`,
-                        background: selected === val + 1 ? 'rgba(124,58,237,0.12)' : 'var(--bg-3)',
+                        border: `2px solid ${selected === val + 1 ? 'var(--teal)' : 'var(--card-border)'}`,
+                        background: selected === val + 1 ? 'rgba(8,145,178,0.12)' : 'var(--bg-3)',
                         transition: 'all 0.15s',
                       }}
-                        onMouseEnter={e => selected !== val + 1 && (e.currentTarget.style.borderColor = 'var(--purple-light)')}
+                        onMouseEnter={e => selected !== val + 1 && (e.currentTarget.style.borderColor = 'var(--teal)')}
                         onMouseLeave={e => selected !== val + 1 && (e.currentTarget.style.borderColor = 'var(--card-border)')}
                       >
-                        <span style={{ fontSize: '1.1rem' }}>
-                          {['😞', '🙁', '😐', '😊', '😄'][val]}
-                        </span>
+                        <span style={{ fontSize: '1.1rem' }}>{emojis[val]}</span>
                         <span style={{
-                          fontSize: '0.7rem', color: selected === val + 1 ? 'var(--purple-light)' : 'var(--text-muted)',
+                          fontSize: '0.7rem', color: selected === val + 1 ? 'var(--teal)' : 'var(--text-muted)',
                           fontFamily: "'Noto Sans KR', sans-serif", fontWeight: selected === val + 1 ? 700 : 400,
-                          textAlign: 'center', lineHeight: 1.3, whiteSpace: 'pre-line',
+                          textAlign: 'center', lineHeight: 1.3,
                         }}>
                           {label}
                         </span>
