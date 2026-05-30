@@ -168,7 +168,8 @@ export default function CareerTest() {
       const qs = data.questions
       if (!Array.isArray(qs) || qs.length === 0) throw new Error('질문 데이터가 없습니다')
       setQuestions(qs)
-      setAnswers(new Array(qs.length).fill(0))
+      // 주관식(텍스트) 문항은 빈 문자열, 나머지는 0으로 초기화
+      setAnswers(qs.map(q => q.answerScore01 == null ? '' : 0))
       setStartTime(new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14))
       setStep(2)
     } catch (err) {
@@ -197,8 +198,12 @@ export default function CareerTest() {
     })
   }
 
+  function isUnanswered(a) {
+    return a === 0 || a === '' || a === null
+  }
+
   async function handleSubmit() {
-    const unanswered = answers.findIndex(a => a === 0)
+    const unanswered = answers.findIndex(a => isUnanswered(a))
     if (unanswered !== -1) {
       const jumpPage = Math.floor(unanswered / PER_PAGE)
       setPage(jumpPage)
@@ -268,9 +273,9 @@ export default function CareerTest() {
 
   const totalPages = Math.ceil(questions.length / PER_PAGE)
   const currentQs = questions.slice(page * PER_PAGE, (page + 1) * PER_PAGE)
-  const answeredCount = answers.filter(a => a > 0).length
+  const answeredCount = answers.filter(a => !isUnanswered(a)).length
   const progress = questions.length > 0 ? Math.round((answeredCount / questions.length) * 100) : 0
-  const isPageDone = currentQs.every((_, i) => answers[page * PER_PAGE + i] > 0)
+  const isPageDone = currentQs.every((_, i) => !isUnanswered(answers[page * PER_PAGE + i]))
 
   const card = {
     background: 'var(--card-bg)', border: '1px solid var(--card-border)',
@@ -504,15 +509,17 @@ export default function CareerTest() {
                 )
               }
 
-              // K형(version=2): 5점 리커트 — answer01~answer05 레이블 사용
+              // K형(version=2): 문항 유형 자동 감지
               const qText = q.question || `문항 ${globalIdx + 1}`
-              const likertLabels = [q.answer01, q.answer02, q.answer03, q.answer04, q.answer05]
-                .filter(Boolean)
-              const emojis = ['😞', '🙁', '😐', '😊', '😄']
+              const isTextQ = q.answerScore01 == null  // 주관식
+              const choiceLabels = [q.answer01, q.answer02, q.answer03, q.answer04, q.answer05].filter(Boolean)
+              const isTwoChoice = !isTextQ && choiceLabels.length === 2
+              const emojis5 = ['😞', '🙁', '😐', '😊', '😄']
+
               return (
                 <div key={globalIdx} style={{
                   ...card,
-                  borderColor: selected > 0 ? 'rgba(8,145,178,0.3)' : 'var(--card-border)',
+                  borderColor: !isUnanswered(selected) ? 'rgba(8,145,178,0.3)' : 'var(--card-border)',
                   transition: 'border-color 0.2s',
                 }}>
                   <p style={{
@@ -522,29 +529,72 @@ export default function CareerTest() {
                     <span style={{ color: 'var(--teal)', fontWeight: 700, marginRight: 8 }}>{qNum}.</span>
                     {qText}
                   </p>
-                  <div style={{ display: 'flex', gap: 6, justifyContent: 'space-between' }}>
-                    {likertLabels.map((label, val) => (
-                      <button key={val} onClick={() => setAnswer(globalIdx, val + 1)} style={{
-                        flex: 1, padding: '10px 4px', borderRadius: 12, cursor: 'pointer',
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-                        border: `2px solid ${selected === val + 1 ? 'var(--teal)' : 'var(--card-border)'}`,
-                        background: selected === val + 1 ? 'rgba(8,145,178,0.12)' : 'var(--bg-3)',
-                        transition: 'all 0.15s',
+
+                  {/* 주관식 */}
+                  {isTextQ && (
+                    <input
+                      type="text"
+                      value={selected || ''}
+                      onChange={e => setAnswer(globalIdx, e.target.value)}
+                      placeholder="희망 직업을 입력하세요"
+                      style={{
+                        width: '100%', padding: '12px 16px', borderRadius: 12, boxSizing: 'border-box',
+                        fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.95rem',
+                        background: 'var(--bg-3)', color: 'var(--text-primary)',
+                        border: `2px solid ${selected ? 'var(--teal)' : 'var(--card-border)'}`,
+                        outline: 'none', transition: 'border-color 0.2s',
                       }}
-                        onMouseEnter={e => selected !== val + 1 && (e.currentTarget.style.borderColor = 'var(--teal)')}
-                        onMouseLeave={e => selected !== val + 1 && (e.currentTarget.style.borderColor = 'var(--card-border)')}
-                      >
-                        <span style={{ fontSize: '1.1rem' }}>{emojis[val]}</span>
-                        <span style={{
-                          fontSize: '0.7rem', color: selected === val + 1 ? 'var(--teal)' : 'var(--text-muted)',
-                          fontFamily: "'Noto Sans KR', sans-serif", fontWeight: selected === val + 1 ? 700 : 400,
-                          textAlign: 'center', lineHeight: 1.3,
+                      onFocus={e => e.target.style.borderColor = 'var(--teal)'}
+                      onBlur={e => e.target.style.borderColor = selected ? 'var(--teal)' : 'var(--card-border)'}
+                    />
+                  )}
+
+                  {/* 2지선다 (예/아니오, 4지선다 등) */}
+                  {!isTextQ && isTwoChoice && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      {choiceLabels.map((label, val) => (
+                        <button key={val} onClick={() => setAnswer(globalIdx, val + 1)} style={{
+                          padding: '14px', borderRadius: 12, cursor: 'pointer',
+                          fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.9rem', fontWeight: 600,
+                          border: `2px solid ${selected === val + 1 ? 'var(--teal)' : 'var(--card-border)'}`,
+                          background: selected === val + 1 ? 'rgba(8,145,178,0.12)' : 'var(--bg-3)',
+                          color: selected === val + 1 ? 'var(--teal)' : 'var(--text-secondary)',
+                          transition: 'all 0.15s',
                         }}>
                           {label}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* 다지선다 (3~5개) */}
+                  {!isTextQ && !isTwoChoice && (
+                    <div style={{ display: 'flex', gap: 6, justifyContent: 'space-between' }}>
+                      {choiceLabels.map((label, val) => (
+                        <button key={val} onClick={() => setAnswer(globalIdx, val + 1)} style={{
+                          flex: 1, padding: '10px 4px', borderRadius: 12, cursor: 'pointer',
+                          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                          border: `2px solid ${selected === val + 1 ? 'var(--teal)' : 'var(--card-border)'}`,
+                          background: selected === val + 1 ? 'rgba(8,145,178,0.12)' : 'var(--bg-3)',
+                          transition: 'all 0.15s',
+                        }}
+                          onMouseEnter={e => selected !== val + 1 && (e.currentTarget.style.borderColor = 'var(--teal)')}
+                          onMouseLeave={e => selected !== val + 1 && (e.currentTarget.style.borderColor = 'var(--card-border)')}
+                        >
+                          {choiceLabels.length === 5 && (
+                            <span style={{ fontSize: '1.1rem' }}>{emojis5[val]}</span>
+                          )}
+                          <span style={{
+                            fontSize: '0.72rem', color: selected === val + 1 ? 'var(--teal)' : 'var(--text-muted)',
+                            fontFamily: "'Noto Sans KR', sans-serif", fontWeight: selected === val + 1 ? 700 : 400,
+                            textAlign: 'center', lineHeight: 1.3,
+                          }}>
+                            {label}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )
             })}
@@ -578,7 +628,7 @@ export default function CareerTest() {
               <button
                 onClick={() => {
                   if (!isPageDone) {
-                    const firstUnanswered = currentQs.findIndex((_, i) => answers[page * PER_PAGE + i] === 0)
+                    const firstUnanswered = currentQs.findIndex((_, i) => isUnanswered(answers[page * PER_PAGE + i]))
                     setError(`${page * PER_PAGE + firstUnanswered + 1}번 문항에 답해주세요`)
                     return
                   }
