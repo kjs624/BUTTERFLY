@@ -514,7 +514,18 @@ export default function CareerTest() {
               const isTextQ = q.answerScore01 == null  // 주관식
               const choiceLabels = [q.answer01, q.answer02, q.answer03, q.answer04, q.answer05].filter(Boolean)
               const isTwoChoice = !isTextQ && choiceLabels.length === 2
+              const isYesNo = isTwoChoice && choiceLabels[0] === '예'
               const emojis5 = ['😞', '🙁', '😐', '😊', '😄']
+
+              // 부연 설명 결정
+              const refJob = answers[questions.findIndex(q2 => q2.answerScore01 == null)] // 42번 답변
+              let contextNote = null
+              if (isYesNo && qText.length < 20) {
+                // 짧은 예/아니오 질문 = 진로 정보를 얻은 대상 목록
+                contextNote = '최근 1년 이내에 진로 관련 정보나 도움을 받은 적이 있나요?'
+              } else if (qText.startsWith('위에 적은')) {
+                contextNote = refJob ? `42번에서 입력한 직업 "${refJob}"에 대한 질문입니다` : '42번에서 입력한 희망 직업에 대한 질문입니다'
+              }
 
               return (
                 <div key={globalIdx} style={{
@@ -522,6 +533,16 @@ export default function CareerTest() {
                   borderColor: !isUnanswered(selected) ? 'rgba(8,145,178,0.3)' : 'var(--card-border)',
                   transition: 'border-color 0.2s',
                 }}>
+                  {contextNote && (
+                    <div style={{
+                      padding: '7px 12px', borderRadius: 8, marginBottom: 12,
+                      background: 'rgba(8,145,178,0.08)', border: '1px solid rgba(8,145,178,0.2)',
+                      fontSize: '0.78rem', color: 'var(--teal)',
+                      fontFamily: "'Noto Sans KR', sans-serif", lineHeight: 1.5,
+                    }}>
+                      💡 {contextNote}
+                    </div>
+                  )}
                   <p style={{
                     fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.95rem', lineHeight: 1.7,
                     color: 'var(--text-primary)', marginBottom: 16,
