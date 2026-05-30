@@ -77,9 +77,13 @@ module.exports = async function handler(req, res) {
 
     try {
       const data = await fetchUrl(url)
+      // 커리어넷은 RESULT(대문자) 또는 result(소문자)로 반환
+      const result = data?.result || data?.RESULT || data
+      console.log('[career-test] report raw keys:', Object.keys(data || {}))
+      console.log('[career-test] result keys:', Object.keys(result || {}))
       res.status(200).json({
         ok: true,
-        result: data?.result || data,
+        result,
         version: parseInt(version),
         config,
       })

@@ -275,6 +275,10 @@ export default function My() {
             {[1, 2].map(v => {
               const info = CAREER_VERSION_INFO[v]
               const result = careerResults[v]
+              // 저장된 url이 없으면 rawResult에서 재추출
+              const resolvedUrl = result?.url ||
+                result?.rawResult?.url || result?.rawResult?.URL ||
+                result?.rawResult?.RESULT?.url || result?.rawResult?.RESULT?.URL || ''
               return (
                 <div key={v} style={{
                   background: 'var(--bg-2)', borderRadius: 14, padding: '16px 18px',
@@ -329,8 +333,8 @@ export default function My() {
                   </div>
 
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    {result?.url && (
-                      <button onClick={() => { setViewerUrl(result.url); setViewerName(info.name) }} style={{
+                    {resolvedUrl ? (
+                      <button onClick={() => { setViewerUrl(resolvedUrl); setViewerName(info.name) }} style={{
                         padding: '7px 14px', borderRadius: 50, fontSize: '0.8rem', fontWeight: 600,
                         fontFamily: "'Noto Sans KR', sans-serif", cursor: 'pointer',
                         background: `${info.color}20`, color: info.color,
@@ -341,7 +345,7 @@ export default function My() {
                       >
                         📊 결과 보기
                       </button>
-                    )}
+                    ) : null}
                     <button onClick={() => navigate(`/career-test`)} style={{
                       padding: '7px 14px', borderRadius: 50, fontSize: '0.8rem', fontWeight: 600,
                       fontFamily: "'Noto Sans KR', sans-serif", cursor: 'pointer',

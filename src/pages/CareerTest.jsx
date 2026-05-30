@@ -225,33 +225,37 @@ export default function CareerTest() {
       if (!data.ok) throw new Error(data.error || '결과를 가져오지 못했습니다')
 
       const rawResult = data.result || {}
-      const url = rawResult.url || rawResult.URL || ''
+
+      // 커리어넷은 url 필드가 다양한 위치에 있을 수 있음
+      function extractUrl(obj) {
+        if (!obj || typeof obj !== 'object') return ''
+        return obj.url || obj.URL || obj.resultUrl || obj.RESULT_URL ||
+               obj.RESULT?.url || obj.RESULT?.URL || ''
+      }
+      const url = extractUrl(rawResult)
       setResultUrl(url)
       setResultData(rawResult)
 
-      // 커리어넷 응답에서 의미있는 결과 추출
+      // 커리어넷 응답에서 의미있는 결과 추출 (RESULT 중첩 포함)
+      const inner = rawResult.RESULT || rawResult.result || rawResult
       const topTypes = []
       const recommendedJobs = []
       let resultSummary = ''
 
-      // 다양한 응답 형태 처리
-      if (rawResult.wonScore) {
-        // H형: RIASEC 유형별 점수
-        const scores = Object.entries(rawResult.wonScore)
+      if (inner.wonScore) {
+        const scores = Object.entries(inner.wonScore)
           .map(([k, v]) => ({ key: k, val: Number(v) }))
           .sort((a, b) => b.val - a.val)
         scores.slice(0, 2).forEach(s => topTypes.push(s.key))
         resultSummary = `상위 흥미 유형: ${topTypes.join(', ')}`
       }
-      if (rawResult.jobList || rawResult.jobs) {
-        const jobs = rawResult.jobList || rawResult.jobs || []
-        jobs.slice(0, 8).forEach(j => {
-          const name = j.job || j.jobNm || j.name || (typeof j === 'string' ? j : '')
-          if (name) recommendedJobs.push(name)
-        })
-      }
-      if (rawResult.summary || rawResult.resultSummary) {
-        resultSummary = rawResult.summary || rawResult.resultSummary
+      const jobsArr = inner.jobList || inner.jobs || rawResult.jobList || rawResult.jobs || []
+      jobsArr.slice(0, 8).forEach(j => {
+        const name = j.job || j.jobNm || j.name || (typeof j === 'string' ? j : '')
+        if (name) recommendedJobs.push(name)
+      })
+      if (inner.summary || inner.resultSummary) {
+        resultSummary = inner.summary || inner.resultSummary
       }
 
       saveResult(version, {
