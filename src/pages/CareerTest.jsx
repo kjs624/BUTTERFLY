@@ -6,6 +6,103 @@ import { useAuth } from '../hooks/useAuth'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
 
+// RIASEC 유형 설명 (H형)
+const RIASEC = {
+  R: { name: '현실형', emoji: '🔧', desc: '도구·기계·자연을 좋아함' },
+  I: { name: '탐구형', emoji: '🔬', desc: '분석·연구·학문을 좋아함' },
+  A: { name: '예술형', emoji: '🎨', desc: '창작·표현·감성을 좋아함' },
+  S: { name: '사회형', emoji: '🤝', desc: '사람 돕기·교육·봉사를 좋아함' },
+  E: { name: '진취형', emoji: '💼', desc: '리더십·설득·사업을 좋아함' },
+  C: { name: '관습형', emoji: '📋', desc: '정리·규칙·데이터를 좋아함' },
+}
+
+function ResultSummaryCard({ result, version }) {
+  const card = {
+    background: 'var(--card-bg)', border: '1px solid var(--card-border)',
+    borderRadius: 20, padding: 24, marginBottom: 20,
+  }
+
+  // H형: wonScore 기반 RIASEC 차트
+  const wonScore = result.wonScore
+  const jobList = result.jobList || result.jobs || []
+  const hasScores = wonScore && Object.keys(wonScore).length > 0
+
+  // 점수 배열 정렬
+  const sortedScores = hasScores
+    ? Object.entries(wonScore)
+        .map(([k, v]) => ({ key: k.toUpperCase(), val: Number(v) }))
+        .sort((a, b) => b.val - a.val)
+    : []
+
+  const maxScore = sortedScores.length > 0 ? sortedScores[0].val : 1
+
+  if (!hasScores && jobList.length === 0) return null
+
+  return (
+    <div style={{ ...card, animation: 'fadeUp 0.4s ease' }}>
+      <h3 style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 700, fontSize: '1rem', marginBottom: 20 }}>
+        📊 내 흥미 유형 결과
+      </h3>
+
+      {hasScores && (
+        <div style={{ marginBottom: 20 }}>
+          {sortedScores.map(({ key, val }, i) => {
+            const info = RIASEC[key] || { name: key, emoji: '📌', desc: '' }
+            const pct = Math.round((val / maxScore) * 100)
+            return (
+              <div key={key} style={{ marginBottom: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+                  <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.88rem', fontWeight: i < 2 ? 700 : 400, color: i < 2 ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+                    {info.emoji} {key}형 ({info.name})
+                    {i === 0 && <span style={{ marginLeft: 6, fontSize: '0.72rem', padding: '2px 7px', borderRadius: 99, background: 'var(--purple)', color: '#fff' }}>1위</span>}
+                    {i === 1 && <span style={{ marginLeft: 6, fontSize: '0.72rem', padding: '2px 7px', borderRadius: 99, background: 'var(--teal)', color: '#fff' }}>2위</span>}
+                  </span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>{val}점</span>
+                </div>
+                <div style={{ height: 8, background: 'var(--bg-3)', borderRadius: 99, overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%', width: `${pct}%`,
+                    background: i === 0 ? 'linear-gradient(90deg,var(--purple),var(--teal))' : i === 1 ? 'var(--teal)' : 'var(--bg-2)',
+                    borderRadius: 99, transition: 'width 0.6s ease',
+                  }} />
+                </div>
+                {i < 2 && (
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", marginTop: 3 }}>
+                    {info.desc}
+                  </p>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {jobList.length > 0 && (
+        <div>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", marginBottom: 10, fontWeight: 600 }}>
+            🎯 추천 직업
+          </p>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            {jobList.slice(0, 10).map((j, i) => {
+              const name = j.job || j.jobNm || j.name || (typeof j === 'string' ? j : '')
+              if (!name) return null
+              return (
+                <span key={i} style={{
+                  padding: '5px 12px', borderRadius: 99, fontSize: '0.8rem',
+                  background: 'var(--bg-3)', color: 'var(--text-secondary)',
+                  fontFamily: "'Noto Sans KR', sans-serif", border: '1px solid var(--card-border)',
+                }}>
+                  {name}
+                </span>
+              )
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 const VERSION_INFO = {
   1: {
     name: '직업흥미검사 H형',
@@ -50,6 +147,7 @@ export default function CareerTest() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [resultUrl, setResultUrl] = useState('')
+  const [resultData, setResultData] = useState(null)
   const [startTime, setStartTime] = useState('')
 
   const navigate = useNavigate()
@@ -119,14 +217,46 @@ export default function CareerTest() {
       const data = await res.json()
       if (!data.ok) throw new Error(data.error || '결과를 가져오지 못했습니다')
 
-      const url = data.result?.url || data.result?.URL || ''
+      const rawResult = data.result || {}
+      const url = rawResult.url || rawResult.URL || ''
       setResultUrl(url)
+      setResultData(rawResult)
+
+      // 커리어넷 응답에서 의미있는 결과 추출
+      const topTypes = []
+      const recommendedJobs = []
+      let resultSummary = ''
+
+      // 다양한 응답 형태 처리
+      if (rawResult.wonScore) {
+        // H형: RIASEC 유형별 점수
+        const scores = Object.entries(rawResult.wonScore)
+          .map(([k, v]) => ({ key: k, val: Number(v) }))
+          .sort((a, b) => b.val - a.val)
+        scores.slice(0, 2).forEach(s => topTypes.push(s.key))
+        resultSummary = `상위 흥미 유형: ${topTypes.join(', ')}`
+      }
+      if (rawResult.jobList || rawResult.jobs) {
+        const jobs = rawResult.jobList || rawResult.jobs || []
+        jobs.slice(0, 8).forEach(j => {
+          const name = j.job || j.jobNm || j.name || (typeof j === 'string' ? j : '')
+          if (name) recommendedJobs.push(name)
+        })
+      }
+      if (rawResult.summary || rawResult.resultSummary) {
+        resultSummary = rawResult.summary || rawResult.resultSummary
+      }
+
       saveResult(version, {
         version,
         versionName: VERSION_INFO[version].name,
         url,
         gender,
         grade,
+        rawResult,
+        topTypes,
+        recommendedJobs,
+        resultSummary,
       })
       setStep(3)
     } catch (err) {
@@ -474,6 +604,9 @@ export default function CareerTest() {
               </p>
             </div>
           </div>
+
+          {/* 인앱 결과 요약 */}
+          {resultData && <ResultSummaryCard result={resultData} version={version} />}
 
           {/* 다른 버전도 해보기 */}
           <div style={{ ...card, marginBottom: 20 }}>

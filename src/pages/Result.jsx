@@ -4,6 +4,8 @@ import StatCard from '../components/StatCard'
 import Slider from '../components/Slider'
 import ChatBot from '../components/ChatBot'
 import CompareCard from '../components/CompareCard'
+import { useCareerTest } from '../hooks/useCareerTest'
+import { useAuth } from '../hooks/useAuth'
 
 function decodeShare(str) {
   try { return JSON.parse(decodeURIComponent(atob(str))) } catch { return null }
@@ -20,6 +22,9 @@ export default function Result() {
   const { state } = useLocation()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
+
+  const { user } = useAuth()
+  const { results: careerResults } = useCareerTest(user)
 
   const shareParam = searchParams.get('share')
   const sharedData = shareParam ? decodeShare(shareParam) : null
@@ -107,7 +112,7 @@ export default function Result() {
 
       {/* STEP 2 — ChatBot */}
       <div style={{ marginBottom: 60 }}>
-        <ChatBot analysisResult={result} selections={selections} analysisId={analysisId} />
+        <ChatBot analysisResult={result} selections={selections} analysisId={analysisId} careerResults={careerResults} />
       </div>
 
       <hr style={{ border: 'none', borderTop: '1px solid var(--card-border)', margin: '48px 0' }} />

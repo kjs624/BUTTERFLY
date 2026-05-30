@@ -293,9 +293,29 @@ export default function My() {
                         </span>
                       </div>
                       {result ? (
-                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>
-                          완료 · {new Date(result.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
-                        </span>
+                        <div>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>
+                            완료 · {new Date(result.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                          </span>
+                          {result.topTypes && result.topTypes.length > 0 && (
+                            <div style={{ marginTop: 4, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                              {result.topTypes.map(t => (
+                                <span key={t} style={{
+                                  padding: '1px 7px', borderRadius: 99, fontSize: '0.7rem',
+                                  background: `${info.color}30`, color: info.color,
+                                  fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 700,
+                                }}>
+                                  {t}형
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {result.resultSummary && (
+                            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", marginTop: 3, maxWidth: 280 }}>
+                              {result.resultSummary.slice(0, 60)}{result.resultSummary.length > 60 ? '...' : ''}
+                            </p>
+                          )}
+                        </div>
                       ) : (
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>
                           미완료

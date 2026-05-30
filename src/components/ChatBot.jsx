@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { supabase, supabaseEnabled } from '../lib/supabase'
 
-export default function ChatBot({ analysisResult, selections, analysisId }) {
+export default function ChatBot({ analysisResult, selections, analysisId, careerResults }) {
   const [messages, setMessages] = useState([
     { role: 'assistant', content: '안녕하세요! 나비효과에 대해 궁금한 것을 질문해보세요. 예: "동아리를 바꾸면 어떻게 될까요?"' }
   ])
@@ -52,7 +52,7 @@ export default function ChatBot({ analysisResult, selections, analysisId }) {
       const res = await fetch(`${base}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: history, analysisResult, selections }),
+        body: JSON.stringify({ messages: history, analysisResult, selections, careerResults }),
       })
       if (!res.ok) throw new Error('서버 오류')
       const data = await res.json()
