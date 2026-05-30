@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import ButterflyLogo from '../components/ButterflyLogo'
 import { useCareerTest } from '../hooks/useCareerTest'
 import { useAuth } from '../hooks/useAuth'
+import CareerResultViewer from '../components/CareerResultViewer'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
 
@@ -148,6 +149,7 @@ export default function CareerTest() {
   const [error, setError] = useState('')
   const [resultUrl, setResultUrl] = useState('')
   const [resultData, setResultData] = useState(null)
+  const [showViewer, setShowViewer] = useState(false)
   const [startTime, setStartTime] = useState('')
 
   const navigate = useNavigate()
@@ -283,6 +285,7 @@ export default function CareerTest() {
   }
 
   return (
+    <>
     <div className="page" style={{ maxWidth: 720, margin: '0 auto', padding: '80px 20px 60px' }}>
 
       {/* 헤더 */}
@@ -685,27 +688,41 @@ export default function CareerTest() {
             </h2>
             <p style={{ color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.9rem', marginBottom: 24, lineHeight: 1.7 }}>
               {VERSION_INFO[version]?.name} 검사가 완료되었습니다.<br />
-              커리어넷에서 상세 결과를 확인하세요.
+              결과를 앱 안에서 바로 확인하세요.
             </p>
 
             {resultUrl ? (
-              <a
-                href={resultUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 8,
-                  padding: '14px 28px', borderRadius: 14,
-                  background: 'linear-gradient(135deg, var(--purple), var(--teal))',
-                  color: '#fff', textDecoration: 'none', fontSize: '0.95rem', fontWeight: 700,
-                  fontFamily: "'Noto Sans KR', sans-serif", marginBottom: 16,
-                  transition: 'opacity 0.2s',
-                }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-              >
-                📊 커리어넷에서 상세 결과 보기 →
-              </a>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' }}>
+                {/* 메인: 앱 내 결과 보기 */}
+                <button
+                  onClick={() => setShowViewer(true)}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 10,
+                    padding: '16px 32px', borderRadius: 14, cursor: 'pointer', border: 'none',
+                    background: 'linear-gradient(135deg, var(--purple), var(--teal))',
+                    color: '#fff', fontSize: '1rem', fontWeight: 700,
+                    fontFamily: "'Noto Sans KR', sans-serif",
+                    boxShadow: '0 4px 20px rgba(124,58,237,0.35)',
+                    transition: 'transform 0.15s, opacity 0.15s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.opacity = '0.9' }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.opacity = '1' }}
+                >
+                  📊 결과 확인하기
+                </button>
+                {/* 보조: 외부 링크 */}
+                <a
+                  href={resultUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    fontSize: '0.78rem', color: 'var(--text-muted)',
+                    fontFamily: "'Noto Sans KR', sans-serif", textDecoration: 'underline',
+                  }}
+                >
+                  커리어넷에서 열기 ↗
+                </a>
+              </div>
             ) : (
               <div style={{
                 padding: '14px 20px', borderRadius: 12, marginBottom: 16,
@@ -718,7 +735,7 @@ export default function CareerTest() {
               </div>
             )}
 
-            <div style={{ marginTop: 8 }}>
+            <div style={{ marginTop: 16 }}>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>
                 결과가 마이페이지에 저장되었습니다
               </p>
@@ -726,7 +743,7 @@ export default function CareerTest() {
           </div>
 
           {/* 인앱 결과 요약 */}
-          {resultData && <ResultSummaryCard result={resultData} version={version} />}
+          {resultData && <ResultSummaryCard result={resultData} version={version} onView={() => setShowViewer(true)} />}
 
           {/* 다른 버전도 해보기 */}
           <div style={{ ...card, marginBottom: 20 }}>
@@ -787,5 +804,15 @@ export default function CareerTest() {
       )}
 
     </div>
+
+    {/* 결과 뷰어 모달 */}
+    {showViewer && resultUrl && (
+      <CareerResultViewer
+        url={resultUrl}
+        versionName={VERSION_INFO[version]?.name}
+        onClose={() => setShowViewer(false)}
+      />
+    )}
+    </>
   )
 }

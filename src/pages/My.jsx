@@ -5,6 +5,7 @@ import { useProfile } from '../hooks/useProfile'
 import { useAuth } from '../hooks/useAuth'
 import { useCareerTest } from '../hooks/useCareerTest'
 import StatCard from '../components/StatCard'
+import CareerResultViewer from '../components/CareerResultViewer'
 
 const CAREER_VERSION_INFO = {
   1: { name: '직업흥미검사 H형', icon: '🔍', badge: 'V1', color: 'var(--purple)' },
@@ -54,6 +55,8 @@ export default function My() {
 
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState({})
+  const [viewerUrl, setViewerUrl] = useState(null)
+  const [viewerName, setViewerName] = useState('')
 
   function startEdit() {
     setDraft({ ...profile })
@@ -76,6 +79,7 @@ export default function My() {
   const hasProfile = Object.values(profile).some(v => v && v !== '')
 
   return (
+    <>
     <div className="page" style={{ maxWidth: 900, margin: '0 auto', padding: '80px 20px 60px' }}>
       <div style={{ textAlign: 'center', marginBottom: 40, animation: 'fadeUp 0.4s ease' }}>
         <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 'clamp(1.8rem, 4vw, 2.4rem)', marginBottom: 12 }}>
@@ -326,17 +330,17 @@ export default function My() {
 
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     {result?.url && (
-                      <a href={result.url} target="_blank" rel="noopener noreferrer" style={{
+                      <button onClick={() => { setViewerUrl(result.url); setViewerName(info.name) }} style={{
                         padding: '7px 14px', borderRadius: 50, fontSize: '0.8rem', fontWeight: 600,
-                        fontFamily: "'Noto Sans KR', sans-serif", textDecoration: 'none',
+                        fontFamily: "'Noto Sans KR', sans-serif", cursor: 'pointer',
                         background: `${info.color}20`, color: info.color,
                         border: `1px solid ${info.color}50`, transition: 'all 0.2s',
                       }}
                         onMouseEnter={e => { e.currentTarget.style.background = info.color; e.currentTarget.style.color = '#fff' }}
                         onMouseLeave={e => { e.currentTarget.style.background = `${info.color}20`; e.currentTarget.style.color = info.color }}
                       >
-                        결과 보기
-                      </a>
+                        📊 결과 보기
+                      </button>
                     )}
                     <button onClick={() => navigate(`/career-test`)} style={{
                       padding: '7px 14px', borderRadius: 50, fontSize: '0.8rem', fontWeight: 600,
@@ -459,5 +463,14 @@ export default function My() {
         </div>
       </div>
     </div>
+
+    {viewerUrl && (
+      <CareerResultViewer
+        url={viewerUrl}
+        versionName={viewerName}
+        onClose={() => setViewerUrl(null)}
+      />
+    )}
+    </>
   )
 }
