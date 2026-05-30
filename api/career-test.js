@@ -15,8 +15,15 @@ function fetchUrl(url) {
       let data = ''
       res.on('data', chunk => { data += chunk })
       res.on('end', () => {
-        try { resolve(JSON.parse(data)) }
-        catch (e) { reject(new Error('파싱 오류: ' + data.slice(0, 300))) }
+        try {
+          const json = JSON.parse(data)
+          // HTTP 4xx/5xx 또는 JSON 내 error 필드 감지
+          if (res.statusCode >= 400 || (json.error && json.status >= 400)) {
+            reject(new Error(`커리어넷 API 오류 ${res.statusCode}: ${json.error || data.slice(0, 200)}`))
+          } else {
+            resolve(json)
+          }
+        } catch (e) { reject(new Error('파싱 오류: ' + data.slice(0, 300))) }
       })
     }).on('error', reject)
   })
@@ -71,9 +78,11 @@ module.exports = async function handler(req, res) {
 
     const config = VERSIONS[parseInt(version)] || VERSIONS[1]
     const now = startDtm || new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14)
-    const answersStr = answers.join(',')
+    // 쉼표는 그대로 두고 각 답변 값만 인코딩 (encodeURIComponent는 쉼표를 %2C로 바꿔서 400 오류 유발)
+    const answersStr = answers.map(a => encodeURIComponent(String(a))).join(',')
 
-    const url = `https://www.career.go.kr/inspct/openapi/test/report?apikey=${CAREER_API_KEY}&qestrnSeq=${config.qestrnSeq}&trgetSe=${config.trgetSe}&gender=${gender}&grade=${grade}&startDtm=${now}&answers=${encodeURIComponent(answersStr)}`
+    const url = `https://www.career.go.kr/inspct/openapi/test/report?apikey=${CAREER_API_KEY}&qestrnSeq=${config.qestrnSeq}&trgetSe=${config.trgetSe}&gender=${gender}&grade=${grade}&startDtm=${now}&answers=${answersStr}`
+    console.log('[career-test] report URL (answers sample):', answersStr.slice(0, 80))
 
     try {
       const data = await fetchUrl(url)
