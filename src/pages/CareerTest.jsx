@@ -699,7 +699,7 @@ export default function CareerTest() {
             </p>
 
             {resultUrl ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center', width: '100%', maxWidth: 320 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center', width: '100%', maxWidth: 320, margin: '0 auto' }}>
                 {/* 메인: 커리어넷 새 탭으로 열기 */}
                 <a
                   href={resultUrl}
