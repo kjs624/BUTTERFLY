@@ -16,7 +16,7 @@ import School from './pages/School'
 
 // 비로그인 시 /auth로 리디렉트 (공개 경로 제외)
 // 자동로그인: Supabase getSession()이 기존 세션 복원
-const PUBLIC_PATHS = ['/auth', '/career-test', '/school', '/map']
+const PUBLIC_PATHS = ['/auth', '/career-test', '/school', '/map', '/select', '/result']
 
 function AuthGuard() {
   const { user, loading } = useAuth()
