@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { useTheme } from './hooks/useTheme'
 import Navbar from './components/Navbar'
+import Tutorial, { TUTORIAL_KEY } from './components/Tutorial'
 import Home from './pages/Home'
 import Select from './pages/Select'
 import Result from './pages/Result'
@@ -13,10 +15,18 @@ import School from './pages/School'
 
 export default function App() {
   const { theme, toggle } = useTheme()
+  const [showTutorial, setShowTutorial] = useState(false)
+
+  useEffect(() => {
+    if (!localStorage.getItem(TUTORIAL_KEY)) {
+      setShowTutorial(true)
+    }
+  }, [])
 
   return (
     <BrowserRouter>
       <Navbar theme={theme} onToggleTheme={toggle} />
+      {showTutorial && <Tutorial onClose={() => setShowTutorial(false)} />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/select" element={<Select />} />
