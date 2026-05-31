@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAnalyze } from '../hooks/useAnalyze'
 import { useHistory } from '../hooks/useHistory'
 
@@ -65,6 +65,9 @@ export default function Select() {
   const { analyze, loading } = useAnalyze()
   const { save } = useHistory()
   const navigate = useNavigate()
+  const location = useLocation()
+  const fromSchool = location.state?.schoolName || null
+  const fromSchoolRegion = location.state?.schoolRegion || null
 
   const allFilled = Object.values(values).every(v => v.trim().length > 0)
   const filled = Object.values(values).filter(v => v.trim()).length
@@ -119,6 +122,21 @@ export default function Select() {
         <p style={{ color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>
           선택한 항목이 미래에 만들어낼 나비효과를 AI가 분석합니다
         </p>
+        {fromSchool && (
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            marginTop: 14, padding: '8px 18px', borderRadius: 99,
+            background: 'rgba(8,145,178,0.1)', border: '1px solid rgba(8,145,178,0.3)',
+          }}>
+            <span style={{ fontSize: '1rem' }}>🏫</span>
+            <span style={{
+              fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.85rem',
+              fontWeight: 700, color: 'var(--teal)',
+            }}>
+              {fromSchool} ({fromSchoolRegion}) 선택됨
+            </span>
+          </div>
+        )}
       </div>
 
       {/* 모드 탭 */}

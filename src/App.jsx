@@ -9,6 +9,7 @@ import My from './pages/My'
 import Auth from './pages/Auth'
 import AuthCallback from './pages/AuthCallback'
 import CareerTest from './pages/CareerTest'
+import School from './pages/School'
 
 export default function App() {
   const { theme, toggle } = useTheme()
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/auth" element={<Auth />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/career-test" element={<CareerTest />} />
+        <Route path="/school" element={<School />} />
       </Routes>
     </BrowserRouter>
   )
