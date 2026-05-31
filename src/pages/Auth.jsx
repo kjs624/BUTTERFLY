@@ -27,6 +27,7 @@ export default function Auth() {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [oauthLoading, setOauthLoading] = useState('')
+  const [autoLogin, setAutoLogin] = useState(true)
   const [tutorialDest, setTutorialDest] = useState(null)
   const { signIn, signUp, signInWithOAuth } = useAuth()
   const navigate = useNavigate()
@@ -51,6 +52,9 @@ export default function Auth() {
       if (mode === 'login') {
         const { error } = await signIn(email, password)
         if (error) throw error
+        // 자동 로그인 설정 저장
+        localStorage.setItem('butterfly_auto_login', autoLogin ? 'true' : 'false')
+        if (!autoLogin) sessionStorage.setItem('butterfly_session_active', 'true')
         navigate('/my')
       } else {
         const { error } = await signUp(email, password)
@@ -202,6 +206,22 @@ export default function Auth() {
               background: 'rgba(0,201,167,0.1)', border: '1px solid rgba(0,201,167,0.3)',
               color: 'var(--mint)', fontSize: '0.85rem', fontFamily: "'Noto Sans KR', sans-serif",
             }}>{message}</div>
+          )}
+
+          {mode === 'login' && (
+            <label style={{
+              display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+              fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.85rem',
+              color: 'var(--text-secondary)', userSelect: 'none',
+            }}>
+              <input
+                type="checkbox"
+                checked={autoLogin}
+                onChange={e => setAutoLogin(e.target.checked)}
+                style={{ width: 16, height: 16, accentColor: 'var(--purple)', cursor: 'pointer' }}
+              />
+              자동 로그인
+            </label>
           )}
 
           <button type="submit" disabled={loading} className="btn-primary" style={{ width: '100%', marginTop: 4 }}>

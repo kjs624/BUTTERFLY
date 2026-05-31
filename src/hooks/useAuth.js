@@ -9,7 +9,17 @@ export function useAuth() {
     if (!supabaseEnabled) { setLoading(false); return }
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
+      // 자동 로그인 OFF 상태에서 브라우저 재시작 감지 → 자동 로그아웃
+      if (
+        session &&
+        localStorage.getItem('butterfly_auto_login') === 'false' &&
+        !sessionStorage.getItem('butterfly_session_active')
+      ) {
+        supabase.auth.signOut()
+        setUser(null)
+      } else {
+        setUser(session?.user ?? null)
+      }
       setLoading(false)
     })
 
