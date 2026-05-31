@@ -269,3 +269,66 @@ input, textarea {
   animation: shimmer 1.5s infinite;
   border-radius: 8px;
 }
+
+/* ── stat-grid: 4 cards → 2×2 on mobile ── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+@media (max-width: 640px) {
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+}
+
+/* ── profile-grid: 4 cols → 2 cols on mobile ── */
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+@media (max-width: 640px) {
+  .profile-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+}
+
+/* ── steps-grid: 4 cols → 2×2 on mobile ── */
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+@media (max-width: 640px) {
+  .steps-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+}
+
+.step-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 18px;
+  padding: 22px 16px;
+  text-align: center;
+  transition: transform 0.2s, border-color 0.2s;
+  height: 100%;
+}
+@media (max-width: 640px) {
+  .step-card {
+    padding: 16px 12px !important;
+    border-radius: 14px !important;
+  }
+}
+
+/* ── stat-card compact on mobile ── */
+@media (max-width: 640px) {
+  .stat-card {
+    padding: 12px 12px !important;
+    border-radius: 12px !important;
+  }
+}

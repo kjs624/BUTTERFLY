@@ -80,27 +80,27 @@ export default function My() {
 
   return (
     <>
-    <div className="page" style={{ maxWidth: 900, margin: '0 auto', padding: '80px 20px 60px' }}>
-      <div style={{ textAlign: 'center', marginBottom: 40, animation: 'fadeUp 0.4s ease' }}>
-        <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 'clamp(1.8rem, 4vw, 2.4rem)', marginBottom: 12 }}>
+    <div className="page" style={{ maxWidth: 900, margin: '0 auto', padding: '72px 16px 60px' }}>
+      <div style={{ textAlign: 'center', marginBottom: 28, animation: 'fadeUp 0.4s ease' }}>
+        <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 'clamp(1.5rem, 5vw, 2.2rem)', marginBottom: 8 }}>
           나의 나비효과 기록
         </h1>
-        <p style={{ color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>
-          지금까지 분석한 나비효과 히스토리
+        <p style={{ color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.88rem' }}>
+          분석 히스토리와 진로 검사 결과
         </p>
       </div>
 
       {/* Profile Section */}
       <div style={{
         background: 'var(--card-bg)', border: '1px solid var(--card-border)',
-        borderRadius: 20, padding: 28, marginBottom: 32, animation: 'fadeUp 0.4s ease',
+        borderRadius: 20, padding: '20px 18px', marginBottom: 20, animation: 'fadeUp 0.4s ease',
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div>
-            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.2rem', marginBottom: 4 }}>
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.1rem', marginBottom: 3 }}>
               내 프로필
             </h2>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>
               {user ? '정보가 자동으로 저장됩니다' : '로그인하면 정보가 저장됩니다'}
             </p>
           </div>
@@ -182,7 +182,7 @@ export default function My() {
             </Field>
           </div>
         ) : hasProfile ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14 }}>
+          <div className="profile-grid">
             {[
               { label: '학교', key: 'school', icon: '🏫' },
               { label: '나이', key: 'age', icon: '🎂', suffix: '세' },
@@ -194,12 +194,12 @@ export default function My() {
               { label: '못하는 것', key: 'weaknesses', icon: '📝' },
             ].filter(({ key }) => profile[key]).map(({ label, key, icon, suffix }) => (
               <div key={key} style={{
-                background: 'var(--bg-2)', borderRadius: 12, padding: '12px 14px',
+                background: 'var(--bg-2)', borderRadius: 12, padding: '10px 12px',
               }}>
-                <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", marginBottom: 4 }}>
+                <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", marginBottom: 3 }}>
                   {icon} {label}
                 </p>
-                <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 600, lineHeight: 1.4 }}>
+                <p style={{ fontSize: '0.88rem', color: 'var(--text-primary)', fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 600, lineHeight: 1.3 }}>
                   {profile[key]}{suffix || ''}
                 </p>
               </div>
@@ -213,23 +213,23 @@ export default function My() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
+      <div className="stat-grid" style={{ marginBottom: 20 }}>
         <StatCard label="총 분석 횟수" value={stats.total} unit="회" icon="🦋" color="var(--purple-light)" />
-        <StatCard label="가장 많이 선택한 동아리" value={stats.topClub} unit="" icon="🎭" color="var(--teal)" />
+        <StatCard label="자주 선택한 동아리" value={stats.topClub} unit="" icon="🎭" color="var(--teal)" />
       </div>
 
       {/* 진로 심리 검사 섹션 */}
       <div style={{
         background: 'var(--card-bg)', border: '1px solid var(--card-border)',
-        borderRadius: 20, padding: 28, marginBottom: 32, animation: 'fadeUp 0.4s ease',
+        borderRadius: 20, padding: '18px 16px', marginBottom: 20, animation: 'fadeUp 0.4s ease',
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div>
-            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.2rem', marginBottom: 4 }}>
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.1rem', marginBottom: 3 }}>
               진로 심리 검사
             </h2>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>
-              커리어넷 직업흥미검사 · V1(H형) · V2(K형)
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>
+              커리어넷 직업흥미검사 H형 · K형
             </p>
           </div>
           <button onClick={() => navigate('/career-test')} style={{
@@ -281,10 +281,10 @@ export default function My() {
                 result?.rawResult?.RESULT?.url || result?.rawResult?.RESULT?.URL || ''
               return (
                 <div key={v} style={{
-                  background: 'var(--bg-2)', borderRadius: 14, padding: '16px 18px',
+                  background: 'var(--bg-2)', borderRadius: 14, padding: '14px 14px',
                   border: result ? `1px solid ${info.color}33` : '1px solid var(--card-border)',
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  flexWrap: 'wrap', gap: 12,
+                  flexWrap: 'wrap', gap: 10,
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <span style={{ fontSize: '1.5rem' }}>{info.icon}</span>
@@ -332,7 +332,7 @@ export default function My() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
                     {resolvedUrl ? (
                       <button onClick={() => { setViewerUrl(resolvedUrl); setViewerName(info.name) }} style={{
                         padding: '7px 14px', borderRadius: 50, fontSize: '0.8rem', fontWeight: 600,
@@ -381,7 +381,7 @@ export default function My() {
       {/* History list */}
       {history.length === 0 ? (
         <div style={{
-          textAlign: 'center', padding: '60px 20px',
+          textAlign: 'center', padding: '48px 20px',
           background: 'var(--card-bg)', border: '1px solid var(--card-border)',
           borderRadius: 20, animation: 'fadeUp 0.4s ease',
         }}>
@@ -448,8 +448,8 @@ export default function My() {
       )}
 
       {/* Data sources */}
-      <div style={{ marginTop: 48, padding: 20, borderRadius: 12, background: 'var(--bg-2)' }}>
-        <h3 style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 700, marginBottom: 16, fontSize: '0.95rem' }}>📌 활용 데이터 출처</h3>
+      <div style={{ marginTop: 32, padding: '16px', borderRadius: 12, background: 'var(--bg-2)' }}>
+        <h3 style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 700, marginBottom: 12, fontSize: '0.88rem' }}>📌 활용 데이터 출처</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {[
             ['학교알리미', 'schoolinfo.go.kr', '동아리·방과후·시설 현황'],
