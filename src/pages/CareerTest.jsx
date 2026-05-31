@@ -160,6 +160,14 @@ export default function CareerTest() {
   const isGuest = searchParams.get('guest') === 'true'
   const isNew = searchParams.get('new') === 'true'
 
+  // 신규 가입자: 검사 완료 후 2.5초 뒤 자동으로 홈으로 이동 (튜토리얼 표시)
+  useEffect(() => {
+    if (step === 3 && isNew) {
+      const t = setTimeout(() => navigate('/'), 2500)
+      return () => clearTimeout(t)
+    }
+  }, [step, isNew])
+
   async function loadQuestions(v) {
     setLoading(true)
     setError('')
@@ -693,10 +701,22 @@ export default function CareerTest() {
             <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.6rem', marginBottom: 10 }}>
               검사 완료!
             </h2>
-            <p style={{ color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.9rem', marginBottom: 24, lineHeight: 1.7 }}>
+            <p style={{ color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.9rem', marginBottom: isNew ? 12 : 24, lineHeight: 1.7 }}>
               {VERSION_INFO[version]?.name} 검사가 완료되었습니다.<br />
               결과를 앱 안에서 바로 확인하세요.
             </p>
+            {isNew && (
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                padding: '8px 18px', borderRadius: 99, marginBottom: 20,
+                background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)',
+                color: 'var(--purple-light)', fontSize: '0.82rem',
+                fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 600,
+                animation: 'pulse 1.5s ease-in-out infinite',
+              }}>
+                🦋 잠시 후 메인 화면으로 이동합니다...
+              </div>
+            )}
 
             {resultUrl ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center', width: '100%', maxWidth: 320, margin: '0 auto' }}>
