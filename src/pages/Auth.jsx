@@ -12,11 +12,6 @@ const GoogleIcon = () => (
   </svg>
 )
 
-const KakaoIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24">
-    <path fill="#3C1E1E" d="M12 3C6.48 3 2 6.58 2 11c0 2.8 1.6 5.27 4.06 6.83-.18.65-.65 2.37-.74 2.74-.12.47.17.46.36.34.14-.09 2.27-1.54 3.19-2.16.36.05.73.09 1.13.09 5.52 0 10-3.58 10-8S17.52 3 12 3z"/>
-  </svg>
-)
 
 export default function Auth() {
   const [mode, setMode] = useState('login')
@@ -156,25 +151,6 @@ export default function Auth() {
             {oauthLoading === 'google' ? '처리 중...' : <><GoogleIcon /> Google로 계속하기</>}
           </button>
 
-          {/* Kakao */}
-          <button
-            onClick={() => handleOAuth('kakao')}
-            disabled={!!oauthLoading}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-              width: '100%', padding: '13px', borderRadius: 12,
-              background: '#FEE500', border: 'none',
-              color: '#3C1E1E', fontSize: '0.95rem', fontWeight: 700,
-              fontFamily: "'Noto Sans KR', sans-serif",
-              cursor: oauthLoading ? 'not-allowed' : 'pointer',
-              opacity: oauthLoading && oauthLoading !== 'kakao' ? 0.5 : 1,
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => !oauthLoading && (e.currentTarget.style.background = '#F0D800')}
-            onMouseLeave={e => (e.currentTarget.style.background = '#FEE500')}
-          >
-            {oauthLoading === 'kakao' ? '처리 중...' : <><KakaoIcon /> 카카오로 계속하기</>}
-          </button>
         </div>
 
         {/* Divider */}
