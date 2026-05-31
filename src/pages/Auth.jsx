@@ -43,7 +43,23 @@ export default function Auth() {
         navigate('/my')
       } else {
         const { data, error } = await signUp(email, password)
+
+        // 이메일 발송 한도 초과 → 이미 계정이 있을 수 있으므로 로그인 시도
+        if (error && error.message?.toLowerCase().includes('email rate limit')) {
+          const { error: loginErr } = await signIn(email, password)
+          if (loginErr) {
+            setError('이메일 인증 한도를 초과했습니다. 잠시 후 다시 시도해주세요.')
+            setLoading(false)
+            return
+          }
+          localStorage.setItem('butterfly_auto_login', 'true')
+          sessionStorage.setItem('butterfly_session_active', 'true')
+          navigate('/career-test?new=true')
+          return
+        }
+
         if (error) throw error
+
         // 가입 후 세션이 없으면 자동 로그인
         if (!data.session) {
           const { error: loginErr } = await signIn(email, password)
@@ -56,8 +72,9 @@ export default function Auth() {
     } catch (err) {
       const msg = err.message || ''
       if (msg.includes('Invalid login')) setError('이메일 또는 비밀번호가 올바르지 않습니다.')
-      else if (msg.includes('already registered')) setError('이미 가입된 이메일입니다.')
+      else if (msg.includes('already registered')) setError('이미 가입된 이메일입니다. 로그인 탭을 이용해주세요.')
       else if (msg.includes('Password should')) setError('비밀번호는 6자 이상이어야 합니다.')
+      else if (msg.toLowerCase().includes('rate limit')) setError('요청이 너무 많습니다. 잠시 후 다시 시도해주세요.')
       else setError(msg || '오류가 발생했습니다.')
     } finally { setLoading(false) }
   }
