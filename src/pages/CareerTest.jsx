@@ -695,36 +695,35 @@ export default function CareerTest() {
             </p>
 
             {resultUrl ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' }}>
-                {/* 메인: 앱 내 결과 보기 */}
-                <button
-                  onClick={() => setShowViewer(true)}
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 10,
-                    padding: '16px 32px', borderRadius: 14, cursor: 'pointer', border: 'none',
-                    background: 'linear-gradient(135deg, var(--purple), var(--teal))',
-                    color: '#fff', fontSize: '1rem', fontWeight: 700,
-                    fontFamily: "'Noto Sans KR', sans-serif",
-                    boxShadow: '0 4px 20px rgba(124,58,237,0.35)',
-                    transition: 'transform 0.15s, opacity 0.15s',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.opacity = '0.9' }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.opacity = '1' }}
-                >
-                  📊 결과 확인하기
-                </button>
-                {/* 보조: 외부 링크 */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center', width: '100%', maxWidth: 320 }}>
+                {/* 메인: 커리어넷 새 탭으로 열기 */}
                 <a
                   href={resultUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
-                    fontSize: '0.78rem', color: 'var(--text-muted)',
-                    fontFamily: "'Noto Sans KR', sans-serif", textDecoration: 'underline',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                    width: '100%', padding: '16px 24px', borderRadius: 14, textDecoration: 'none',
+                    background: 'linear-gradient(135deg, var(--purple), var(--teal))',
+                    color: '#fff', fontSize: '1rem', fontWeight: 700,
+                    fontFamily: "'Noto Sans KR', sans-serif", boxSizing: 'border-box',
+                    boxShadow: '0 4px 20px rgba(124,58,237,0.35)',
                   }}
                 >
-                  커리어넷에서 열기 ↗
+                  📊 커리어넷에서 결과 보기 ↗
                 </a>
+                {/* 보조: 앱 내 모달 (결과 요약 확인) */}
+                <button
+                  onClick={() => setShowViewer(true)}
+                  style={{
+                    width: '100%', padding: '11px', borderRadius: 12, cursor: 'pointer',
+                    fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.88rem',
+                    background: 'var(--bg-3)', border: '1px solid var(--card-border)',
+                    color: 'var(--text-secondary)',
+                  }}
+                >
+                  앱 내 결과 정보 보기
+                </button>
               </div>
             ) : (
               <div style={{
@@ -748,21 +747,6 @@ export default function CareerTest() {
           {/* 인앱 결과 요약 */}
           {resultData && <ResultSummaryCard result={resultData} version={version} onView={() => setShowViewer(true)} />}
 
-          {/* 임시 디버그 패널 — API 응답 구조 확인용 */}
-          {resultData && (
-            <details style={{ ...card, marginBottom: 20, fontSize: '0.75rem' }}>
-              <summary style={{ cursor: 'pointer', fontFamily: "'Noto Sans KR', sans-serif", color: 'var(--text-muted)', marginBottom: 8 }}>
-                🛠 디버그: API 응답 구조 (개발자용)
-              </summary>
-              <pre style={{
-                background: 'var(--bg-3)', borderRadius: 8, padding: 12, overflowX: 'auto',
-                fontFamily: 'monospace', fontSize: '0.7rem', color: 'var(--text-secondary)',
-                maxHeight: 300, overflowY: 'auto', marginTop: 8,
-              }}>
-                {JSON.stringify(resultData, null, 2)}
-              </pre>
-            </details>
-          )}
 
           {/* 다른 버전도 해보기 */}
           <div style={{ ...card, marginBottom: 20 }}>
