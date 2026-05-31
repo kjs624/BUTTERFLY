@@ -463,12 +463,15 @@ export default function CareerTest() {
               const qNum = q.qitemNo || q.qnum || q.no || (globalIdx + 1)
               const selected = answers[globalIdx]
 
-              // H형(version=1): 2지선다 — answer01 vs answer02
+              // H형(version=1): 4단계 리커트 — 활동명 + 매우싫다/약간싫다/약간좋다/매우좋다
               if (version === 1) {
-                const choiceA = q.answer01 || ''
-                const choiceB = q.answer02 || ''
-                const descA = q.answer03 || ''
-                const descB = q.answer04 || ''
+                const qText = q.question || `문항 ${globalIdx + 1}`
+                const hChoices = [
+                  { label: q.answer01 || '매우싫다', emoji: '😞', scoreVal: parseInt(q.answerScore01) || 1 },
+                  { label: q.answer02 || '약간싫다', emoji: '🙁', scoreVal: parseInt(q.answerScore02) || 2 },
+                  { label: q.answer03 || '약간좋다', emoji: '😊', scoreVal: parseInt(q.answerScore03) || 3 },
+                  { label: q.answer04 || '매우좋다', emoji: '😄', scoreVal: parseInt(q.answerScore04) || 4 },
+                ]
                 return (
                   <div key={globalIdx} style={{
                     ...card,
@@ -477,19 +480,22 @@ export default function CareerTest() {
                   }}>
                     <p style={{
                       fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.82rem',
-                      color: 'var(--text-muted)', marginBottom: 14,
+                      color: 'var(--text-muted)', marginBottom: 10,
                     }}>
                       <span style={{ color: 'var(--purple-light)', fontWeight: 700, marginRight: 6 }}>{qNum}.</span>
-                      두 활동 중 더 좋아하는 것을 선택하세요
+                      이 활동을 얼마나 좋아하나요?
                     </p>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                      {[
-                        { label: choiceA, desc: descA, scoreVal: parseInt(q.answerScore01) },
-                        { label: choiceB, desc: descB, scoreVal: parseInt(q.answerScore02) },
-                      ].map(choice => (
+                    <p style={{
+                      fontFamily: "'Noto Sans KR', sans-serif", fontSize: '1rem', fontWeight: 700,
+                      color: 'var(--text-primary)', marginBottom: 16, lineHeight: 1.5,
+                    }}>
+                      {qText}
+                    </p>
+                    <div style={{ display: 'flex', gap: 6, justifyContent: 'space-between' }}>
+                      {hChoices.map(choice => (
                         <button key={choice.scoreVal} onClick={() => setAnswer(globalIdx, choice.scoreVal)} style={{
-                          padding: '16px 12px', borderRadius: 14, cursor: 'pointer', textAlign: 'center',
-                          fontFamily: "'Noto Sans KR', sans-serif",
+                          flex: 1, padding: '10px 4px', borderRadius: 12, cursor: 'pointer',
+                          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
                           border: `2px solid ${selected === choice.scoreVal ? 'var(--purple)' : 'var(--card-border)'}`,
                           background: selected === choice.scoreVal ? 'rgba(124,58,237,0.12)' : 'var(--bg-3)',
                           transition: 'all 0.15s',
@@ -497,17 +503,15 @@ export default function CareerTest() {
                           onMouseEnter={e => selected !== choice.scoreVal && (e.currentTarget.style.borderColor = 'var(--purple-light)')}
                           onMouseLeave={e => selected !== choice.scoreVal && (e.currentTarget.style.borderColor = 'var(--card-border)')}
                         >
-                          <div style={{
-                            fontSize: '1rem', fontWeight: 700, marginBottom: 6,
-                            color: selected === choice.scoreVal ? 'var(--purple-light)' : 'var(--text-primary)',
+                          <span style={{ fontSize: '1.2rem' }}>{choice.emoji}</span>
+                          <span style={{
+                            fontSize: '0.7rem', fontFamily: "'Noto Sans KR', sans-serif",
+                            color: selected === choice.scoreVal ? 'var(--purple-light)' : 'var(--text-muted)',
+                            fontWeight: selected === choice.scoreVal ? 700 : 400,
+                            textAlign: 'center', lineHeight: 1.3, whiteSpace: 'pre-line',
                           }}>
                             {choice.label}
-                          </div>
-                          {choice.desc && (
-                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                              {choice.desc}
-                            </div>
-                          )}
+                          </span>
                         </button>
                       ))}
                     </div>
