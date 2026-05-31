@@ -7,7 +7,7 @@ const CAREER_API_KEY = process.env.CAREER_NET_API_KEY || '43f5190dec8329d2d10afc
 // q=6  → 직업가치관검사 질문, qestrnSeq=6  trgetSe=100208
 // q=7  → 직업흥미검사K형 질문,  qestrnSeq=7  trgetSe=100207
 const VERSIONS = {
-  1: { q: '6', qestrnSeq: '6', trgetSe: '100208', name: '직업가치관검사', target: '일반' },
+  1: { q: '5', qestrnSeq: '5', trgetSe: '100207', name: '직업흥미검사(H형)', target: '고등학생' },
   2: { q: '7', qestrnSeq: '7', trgetSe: '100207', name: '직업흥미검사(K형)', target: '고등학생' },
 }
 

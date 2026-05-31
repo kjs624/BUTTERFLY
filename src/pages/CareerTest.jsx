@@ -106,19 +106,19 @@ function ResultSummaryCard({ result, version }) {
 
 const VERSION_INFO = {
   1: {
-    name: '직업가치관검사',
-    shortName: '가치관',
-    badge: 'V1',
-    icon: '💎',
+    name: '직업흥미검사(H형)',
+    shortName: 'H형',
+    badge: 'H형',
+    icon: '🔍',
     color: 'var(--purple)',
-    desc: '직업 가치관 탐색 · 고등학생 권장',
-    detail: '28가지 직업 가치를 비교하여\n나에게 중요한 직업 가치관을 발견합니다',
-    questions: '총 28문항 · 약 5분',
+    desc: '직업 흥미 탐색 · Holland RIASEC · 고등학생 권장',
+    detail: 'Holland 6각형 모델로 나의 직업 흥미를\nR·I·A·S·E·C 6가지 유형으로 분석합니다',
+    questions: '총 60문항 · 약 10분',
   },
   2: {
-    name: '직업흥미검사 K형',
+    name: '직업흥미검사(K형)',
     shortName: 'K형',
-    badge: 'V2',
+    badge: 'K형',
     icon: '🎯',
     color: 'var(--teal)',
     desc: '직업 흥미 탐색 · 고등학생 권장',
@@ -480,7 +480,7 @@ export default function CareerTest() {
                       color: 'var(--text-muted)', marginBottom: 14,
                     }}>
                       <span style={{ color: 'var(--purple-light)', fontWeight: 700, marginRight: 6 }}>{qNum}.</span>
-                      두 가치 중 나에게 더 중요한 것을 선택하세요
+                      두 활동 중 더 좋아하는 것을 선택하세요
                     </p>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                       {[
