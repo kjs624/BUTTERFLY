@@ -26,28 +26,29 @@ export default function Home() {
         textAlign: 'center', padding: '60px 20px',
         background: 'radial-gradient(ellipse 80% 60% at 50% 30%, rgba(124,58,237,0.15) 0%, transparent 70%)',
       }}>
-        <div style={{ marginBottom: 28 }}>
-          <ButterflyLogo size={120} />
+        <div style={{ marginBottom: 20 }}>
+          <ButterflyLogo size={80} />
         </div>
         <h1 style={{
           fontFamily: "'DM Serif Display', serif",
-          fontSize: 'clamp(3rem, 8vw, 5.5rem)',
-          lineHeight: 1.05, marginBottom: 16, letterSpacing: '0.04em',
+          fontSize: 'clamp(2.4rem, 10vw, 5.5rem)',
+          lineHeight: 1.05, marginBottom: 12, letterSpacing: '0.04em',
         }}>
           BUTTERFLY
         </h1>
         <p style={{
-          color: 'var(--text-secondary)', fontSize: 'clamp(0.95rem, 2vw, 1.1rem)',
-          marginBottom: 40, fontFamily: "'Noto Sans KR', sans-serif",
+          color: 'var(--text-secondary)', fontSize: 'clamp(0.88rem, 3vw, 1.1rem)',
+          marginBottom: 32, fontFamily: "'Noto Sans KR', sans-serif",
+          padding: '0 8px',
         }}>
           학교에서의 선택이 만드는 나비효과
         </p>
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <button className="btn-primary" style={{ fontSize: '1.05rem' }} onClick={() => navigate('/select')}>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', width: '100%', maxWidth: 360, padding: '0 16px', boxSizing: 'border-box' }}>
+          <button className="btn-primary mobile-full" style={{ fontSize: '1rem', flex: 1 }} onClick={() => navigate('/select')}>
             🦋 나비효과 분석 시작
           </button>
-          <button className="btn-outline" onClick={() => navigate('/map')}>
-            지역 격차 지도 보기
+          <button className="btn-outline mobile-full" style={{ flex: 1 }} onClick={() => navigate('/map')}>
+            지역 지도 보기
           </button>
         </div>
       </section>

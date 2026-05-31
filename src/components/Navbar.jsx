@@ -59,7 +59,7 @@ export default function Navbar({ theme, onToggleTheme }) {
         background: 'var(--nav-bg)', backdropFilter: 'blur(20px)',
         borderBottom: '1px solid var(--card-border)',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 24px', height: '64px',
+        padding: '0 16px', height: '56px',
       }}>
         {/* Logo */}
         <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, fontFamily: "'DM Serif Display', serif", fontSize: '1.3rem', color: 'var(--text-primary)' }}>

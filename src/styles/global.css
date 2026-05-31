@@ -168,9 +168,9 @@ input, textarea {
   background-clip: text;
 }
 
-/* Mobile bottom tab bar */
-@media (max-width: 480px) {
-  .page { padding-top: 60px; padding-bottom: 80px; }
+/* ── Mobile bottom tab bar ── */
+@media (max-width: 640px) {
+  .page { padding-top: 64px; padding-bottom: 88px; }
 
   .bottom-tab {
     position: fixed;
@@ -180,6 +180,7 @@ input, textarea {
     backdrop-filter: blur(20px);
     border-top: 1px solid var(--card-border);
     z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   .bottom-tab a {
@@ -187,15 +188,78 @@ input, textarea {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    padding: 10px 0;
-    font-size: 0.65rem;
+    gap: 3px;
+    padding: 10px 4px;
+    font-size: 0.6rem;
     color: var(--text-muted);
     transition: color 0.2s;
   }
 
   .bottom-tab a.active { color: var(--purple-light); }
-  .bottom-tab a svg { width: 22px; height: 22px; }
+  .bottom-tab a svg { width: 20px; height: 20px; }
+}
+
+/* ── Global mobile responsive ── */
+@media (max-width: 640px) {
+  /* Cards */
+  .card {
+    padding: 16px !important;
+    border-radius: 14px !important;
+  }
+
+  /* Buttons — bigger tap target */
+  .btn-primary {
+    padding: 13px 24px !important;
+    font-size: 0.95rem !important;
+    min-height: 48px;
+  }
+  .btn-outline {
+    padding: 11px 20px !important;
+    font-size: 0.85rem !important;
+    min-height: 44px;
+  }
+
+  /* Prevent horizontal overflow */
+  body { overflow-x: hidden; }
+  img, video { max-width: 100%; }
+
+  /* Input / textarea */
+  input, textarea, select {
+    font-size: 16px !important; /* iOS 자동 확대 방지 */
+  }
+}
+
+/* ── 모바일 유틸리티 클래스 ── */
+@media (max-width: 640px) {
+  .mobile-col  { flex-direction: column !important; }
+  .mobile-full { width: 100% !important; }
+  .mobile-center { text-align: center !important; }
+  .mobile-p-sm { padding: 12px 14px !important; }
+  .mobile-gap-sm { gap: 8px !important; }
+
+  /* 4-버튼 격자: 모바일에서 2×2 */
+  .choice-grid-4 {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  /* 결과 하단 버튼 세로 배치 */
+  .result-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .result-actions button,
+  .result-actions a {
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+}
+
+/* ── 헤더 내비게이션 모바일 ── */
+@media (max-width: 640px) {
+  nav { padding: 0 14px !important; height: 56px !important; }
 }
 
 /* Loading skeleton */

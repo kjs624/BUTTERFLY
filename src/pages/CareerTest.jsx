@@ -491,21 +491,21 @@ export default function CareerTest() {
                     }}>
                       {qText}
                     </p>
-                    <div style={{ display: 'flex', gap: 6, justifyContent: 'space-between' }}>
+                    <div className="choice-grid-4" style={{ display: 'flex', gap: 6, justifyContent: 'space-between' }}>
                       {hChoices.map(choice => (
                         <button key={choice.scoreVal} onClick={() => setAnswer(globalIdx, choice.scoreVal)} style={{
-                          flex: 1, padding: '10px 4px', borderRadius: 12, cursor: 'pointer',
+                          flex: 1, padding: '12px 6px', borderRadius: 12, cursor: 'pointer',
                           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
                           border: `2px solid ${selected === choice.scoreVal ? 'var(--purple)' : 'var(--card-border)'}`,
                           background: selected === choice.scoreVal ? 'rgba(124,58,237,0.12)' : 'var(--bg-3)',
-                          transition: 'all 0.15s',
+                          transition: 'all 0.15s', minHeight: 64,
                         }}
                           onMouseEnter={e => selected !== choice.scoreVal && (e.currentTarget.style.borderColor = 'var(--purple-light)')}
                           onMouseLeave={e => selected !== choice.scoreVal && (e.currentTarget.style.borderColor = 'var(--card-border)')}
                         >
-                          <span style={{ fontSize: '1.2rem' }}>{choice.emoji}</span>
+                          <span style={{ fontSize: '1.4rem' }}>{choice.emoji}</span>
                           <span style={{
-                            fontSize: '0.7rem', fontFamily: "'Noto Sans KR', sans-serif",
+                            fontSize: '0.72rem', fontFamily: "'Noto Sans KR', sans-serif",
                             color: selected === choice.scoreVal ? 'var(--purple-light)' : 'var(--text-muted)',
                             fontWeight: selected === choice.scoreVal ? 700 : 400,
                             textAlign: 'center', lineHeight: 1.3, whiteSpace: 'pre-line',
@@ -600,10 +600,10 @@ export default function CareerTest() {
 
                   {/* 다지선다 (3~5개) — 위치값(1~5) 제출 */}
                   {!isTextQ && !isTwoChoice && (
-                    <div style={{ display: 'flex', gap: 6, justifyContent: 'space-between' }}>
+                    <div className={choiceLabels.length >= 4 ? 'choice-grid-4' : ''} style={{ display: 'flex', gap: 6, justifyContent: 'space-between', flexWrap: 'wrap' }}>
                       {choiceLabels.map((label, val) => (
                         <button key={val} onClick={() => setAnswer(globalIdx, val + 1)} style={{
-                          flex: 1, padding: '10px 4px', borderRadius: 12, cursor: 'pointer',
+                          flex: 1, minWidth: 60, padding: '10px 4px', borderRadius: 12, cursor: 'pointer',
                           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
                           border: `2px solid ${selected === val + 1 ? 'var(--teal)' : 'var(--card-border)'}`,
                           background: selected === val + 1 ? 'rgba(8,145,178,0.12)' : 'var(--bg-3)',

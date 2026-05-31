@@ -245,7 +245,7 @@ export default function Result() {
         </div>
       )}
 
-      <div style={{ textAlign: 'center', display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+      <div className="result-actions" style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
         <button className="btn-outline" onClick={() => navigate('/select')}>다시 분석하기</button>
         <button className="btn-primary" onClick={() => navigate('/map')}>지역 지도 보기</button>
       </div>
