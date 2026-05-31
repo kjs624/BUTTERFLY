@@ -35,8 +35,10 @@ export default function Auth() {
         // 자동 로그인 설정 저장
         localStorage.setItem('butterfly_auto_login', autoLogin ? 'true' : 'false')
         if (!autoLogin) sessionStorage.setItem('butterfly_session_active', 'true')
-        // 첫 로그인(튜토리얼 미확인)이면 메인으로, 재방문이면 마이페이지로
-        navigate(localStorage.getItem('butterfly_tutorial_seen') ? '/my' : '/')
+        // 첫 로그인이면 메인으로, 재방문이면 마이페이지로
+        const isFirstLogin = !localStorage.getItem('butterfly_logged_in_before')
+        localStorage.setItem('butterfly_logged_in_before', 'true')
+        navigate(isFirstLogin ? '/' : '/my')
       } else {
         const { data, error } = await signUp(email, password)
 
