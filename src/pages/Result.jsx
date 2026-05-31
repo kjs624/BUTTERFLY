@@ -1,7 +1,6 @@
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import WaveCard from '../components/WaveCard'
 import StatCard from '../components/StatCard'
-import Slider from '../components/Slider'
 import ChatBot from '../components/ChatBot'
 import CompareCard from '../components/CompareCard'
 import { useCareerTest } from '../hooks/useCareerTest'
@@ -222,13 +221,6 @@ export default function Result() {
           )}
         </>
       )}
-
-      <hr style={{ border: 'none', borderTop: '1px solid var(--card-border)', margin: '48px 0' }} />
-
-      {/* STEP 1 — Slider */}
-      <div style={{ marginBottom: 60 }}>
-        <Slider />
-      </div>
 
       <hr style={{ border: 'none', borderTop: '1px solid var(--card-border)', margin: '48px 0' }} />
 
