@@ -360,7 +360,7 @@ export default function CareerTest() {
           </div>
 
           <div style={{ textAlign: 'center' }}>
-            <button onClick={() => navigate('/')} style={{
+            <button onClick={() => navigate(isGuest ? '/select' : '/')} style={{
               color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.85rem',
               background: 'none', border: 'none', cursor: 'pointer', padding: '8px 16px',
             }}>

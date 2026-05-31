@@ -30,7 +30,7 @@ import CareerTest from './pages/CareerTest'
 import School from './pages/School'
 
 // 비로그인 시 /auth로 리디렉트 (공개 경로 제외)
-const PUBLIC_PATHS = ['/', '/auth', '/career-test', '/school', '/map', '/select', '/result']
+const PUBLIC_PATHS = ['/auth', '/career-test', '/school', '/map', '/select', '/result']
 
 function AuthGuard() {
   const { user, loading } = useAuth()
