@@ -3,9 +3,13 @@ const http = require('http')
 
 const CAREER_API_KEY = process.env.CAREER_NET_API_KEY || '43f5190dec8329d2d10afc58319967f6'
 
+// CareerNet 공식 API 코드표 (https://www.career.go.kr/cnet/front/openapi/openApiTestCenter.do)
+// trgetSe: 100206=중학생, 100207=고등학생, 100208-100215=대학생/일반
+// qestrnSeq: 24=직업가치관검사(중학생), 25=직업가치관검사(고등학생)
+//            30=직업흥미검사K(중학생),  31=직업흥미검사K(고등학생)
 const VERSIONS = {
-  1: { q: '6', qestrnSeq: '6', trgetSe: '100000', name: '직업흥미검사(H형)', target: '중학생' },
-  2: { q: '7', qestrnSeq: '7', trgetSe: '100001', name: '직업흥미검사(K형)', target: '고등학생/일반' },
+  1: { q: '6', qestrnSeq: '25', trgetSe: '100207', name: '직업가치관검사', target: '고등학생' },
+  2: { q: '7', qestrnSeq: '31', trgetSe: '100207', name: '직업흥미검사(K형)', target: '고등학생' },
 }
 
 function fetchUrl(url) {
@@ -81,8 +85,8 @@ module.exports = async function handler(req, res) {
     // 쉼표는 그대로 두고 각 답변 값만 인코딩 (encodeURIComponent는 쉼표를 %2C로 바꿔서 400 오류 유발)
     const answersStr = answers.map(a => encodeURIComponent(String(a))).join(',')
 
-    const url = `https://www.career.go.kr/inspct/openapi/test/report?apikey=${CAREER_API_KEY}&qestrnSeq=${config.qestrnSeq}&trgetSe=${config.trgetSe}&gender=${gender}&grade=${grade}&startDtm=${now}&answers=${answersStr}`
-    console.log('[career-test] report URL (answers sample):', answersStr.slice(0, 80))
+    const url = `https://www.career.go.kr/inspct/openapi/test/report?apikey=${CAREER_API_KEY}&qestrnSeq=${config.qestrnSeq}&trgetSe=${config.trgetSe}&gender=${gender}&school=&grade=${grade}&startDtm=${now}&answers=${answersStr}`
+    console.log(`[career-test] report → qestrnSeq=${config.qestrnSeq} trgetSe=${config.trgetSe} gender=${gender} grade=${grade} answers(${answers.length}):`, answersStr.slice(0, 100))
 
     try {
       const data = await fetchUrl(url)

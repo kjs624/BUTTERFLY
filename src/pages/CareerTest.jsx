@@ -106,14 +106,14 @@ function ResultSummaryCard({ result, version }) {
 
 const VERSION_INFO = {
   1: {
-    name: '직업흥미검사 H형',
-    shortName: 'H형',
+    name: '직업가치관검사',
+    shortName: '가치관',
     badge: 'V1',
-    icon: '🔍',
+    icon: '💎',
     color: 'var(--purple)',
-    desc: '홀랜드 이론 기반 · 중학생 권장',
-    detail: '6가지 직업 흥미 유형(RIASEC)을 측정하여\n나에게 맞는 직업군을 탐색합니다',
-    questions: '총 28문항',
+    desc: '직업 가치관 탐색 · 고등학생 권장',
+    detail: '28가지 직업 가치를 비교하여\n나에게 중요한 직업 가치관을 발견합니다',
+    questions: '총 28문항 · 약 5분',
   },
   2: {
     name: '직업흥미검사 K형',
@@ -121,9 +121,9 @@ const VERSION_INFO = {
     badge: 'V2',
     icon: '🎯',
     color: 'var(--teal)',
-    desc: '쿠더 이론 기반 · 고등학생 권장',
+    desc: '직업 흥미 탐색 · 고등학생 권장',
     detail: '11가지 직업 흥미 영역을 분석하여\n구체적인 직업 적합도를 탐색합니다',
-    questions: '총 64문항',
+    questions: '총 64문항 · 약 15분',
   },
 }
 
