@@ -1,9 +1,24 @@
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { useTheme } from './hooks/useTheme'
 import { useAuth } from './hooks/useAuth'
 import Navbar from './components/Navbar'
-import { TUTORIAL_KEY } from './components/Tutorial'
+import Tutorial, { TUTORIAL_KEY } from './components/Tutorial'
+
+// 홈(/)에서만 튜토리얼 표시
+function TutorialManager() {
+  const [show, setShow] = useState(false)
+  const location = useLocation()
+
+  useEffect(() => {
+    if (location.pathname === '/' && !localStorage.getItem(TUTORIAL_KEY)) {
+      setShow(true)
+    }
+  }, [location.pathname])
+
+  if (!show) return null
+  return <Tutorial onClose={() => setShow(false)} />
+}
 import Home from './pages/Home'
 import Select from './pages/Select'
 import Result from './pages/Result'
@@ -15,8 +30,7 @@ import CareerTest from './pages/CareerTest'
 import School from './pages/School'
 
 // 비로그인 시 /auth로 리디렉트 (공개 경로 제외)
-// 자동로그인: Supabase getSession()이 기존 세션 복원
-const PUBLIC_PATHS = ['/auth', '/career-test', '/school', '/map', '/select', '/result']
+const PUBLIC_PATHS = ['/', '/auth', '/career-test', '/school', '/map', '/select', '/result']
 
 function AuthGuard() {
   const { user, loading } = useAuth()
@@ -40,6 +54,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthGuard />
+      <TutorialManager />
       <Navbar theme={theme} onToggleTheme={toggle} />
       <Routes>
         <Route path="/" element={<Home />} />

@@ -360,11 +360,11 @@ export default function CareerTest() {
           </div>
 
           <div style={{ textAlign: 'center' }}>
-            <button onClick={() => navigate(isGuest ? '/select' : user ? '/my' : '/select')} style={{
+            <button onClick={() => navigate('/')} style={{
               color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.85rem',
               background: 'none', border: 'none', cursor: 'pointer', padding: '8px 16px',
             }}>
-              {isNew || isGuest ? '🦋 건너뛰고 나비효과 분석하기 →' : '← 돌아가기'}
+              {isNew || isGuest ? '건너뛰기 →' : '← 돌아가기'}
             </button>
           </div>
         </div>

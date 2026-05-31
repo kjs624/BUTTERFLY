@@ -33,11 +33,7 @@ export default function Auth() {
   const navigate = useNavigate()
 
   const openTutorial = (dest) => {
-    if (localStorage.getItem(TUTORIAL_KEY)) {
-      navigate(dest)
-    } else {
-      setTutorialDest(dest)
-    }
+    navigate(dest)
   }
 
   const handleTutorialClose = () => {
