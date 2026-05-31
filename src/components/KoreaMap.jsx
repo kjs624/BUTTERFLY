@@ -159,24 +159,15 @@ export default function KoreaMap() {
   return (
     <div>
       {/* 지표 선택 탭 */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
+      <div className="map-tabs">
         {METRICS.map(m => (
-          <button key={m.key} onClick={() => setActiveMetric(m.key)} style={{
-            padding: '8px 18px', borderRadius: 50, fontSize: '0.85rem',
-            fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 500, cursor: 'pointer',
-            background: activeMetric === m.key
-              ? 'linear-gradient(135deg, var(--purple), var(--teal))'
-              : 'var(--card-bg)',
-            border: `1px solid ${activeMetric === m.key ? 'transparent' : 'var(--card-border)'}`,
-            color: activeMetric === m.key ? '#fff' : 'var(--text-secondary)',
-            transition: 'all 0.2s',
-          }}>
+          <button key={m.key} onClick={() => setActiveMetric(m.key)} className={`map-tab-btn${activeMetric === m.key ? ' active' : ''}`}>
             {m.label}
           </button>
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 24, alignItems: 'start' }}>
+      <div className="map-layout">
         {/* 지도 SVG */}
         <div style={{ background: 'var(--bg-2)', borderRadius: 16, overflow: 'hidden' }}>
           <svg
@@ -197,7 +188,7 @@ export default function KoreaMap() {
           </svg>
         </div>
 
-        {/* 오른쪽 패널 */}
+        {/* 오른쪽·하단 패널 */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {info ? (
             <div style={{

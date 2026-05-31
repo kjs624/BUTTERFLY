@@ -332,3 +332,57 @@ input, textarea {
     border-radius: 12px !important;
   }
 }
+
+/* ── KoreaMap 레이아웃 ── */
+.map-layout {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 24px;
+  align-items: start;
+}
+
+.map-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.map-tab-btn {
+  padding: 8px 6px;
+  border-radius: 50px;
+  font-size: 0.82rem;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.map-tab-btn.active {
+  background: linear-gradient(135deg, var(--purple), var(--teal));
+  border-color: transparent;
+  color: #fff;
+}
+
+@media (max-width: 640px) {
+  .map-layout {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .map-tabs {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .map-tab-btn {
+    font-size: 0.78rem !important;
+    padding: 8px 4px !important;
+  }
+}
