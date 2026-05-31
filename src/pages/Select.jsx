@@ -1,7 +1,33 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAnalyze } from '../hooks/useAnalyze'
 import { useHistory } from '../hooks/useHistory'
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
+
+const SUBJECTS = ['국어', '수학', '영어', '과학', '사회', '역사', '기술·가정', '미술', '음악', '체육', '기타']
+
+// 이미지 → base64 변환 + 압축 (canvas 리사이징)
+function compressImage(file, maxWidth = 1024) {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const img = new Image()
+      img.onload = () => {
+        const scale = Math.min(1, maxWidth / img.width)
+        const canvas = document.createElement('canvas')
+        canvas.width = img.width * scale
+        canvas.height = img.height * scale
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
+        const compressed = canvas.toDataURL('image/jpeg', 0.82)
+        // data:image/jpeg;base64,XXX → XXX 부분만 추출
+        resolve({ base64: compressed.split(',')[1], mediaType: 'image/jpeg', preview: compressed })
+      }
+      img.src = e.target.result
+    }
+    reader.readAsDataURL(file)
+  })
+}
 
 const AREAS = [
   {
@@ -52,15 +78,27 @@ const AREAS = [
 ]
 
 export default function Select() {
-  const [mode, setMode] = useState('full') // 'full' | 'single'
+  const [mode, setMode] = useState('full') // 'full' | 'single' | 'poster' | 'project'
 
   // 전체 분석 상태
   const [values, setValues] = useState({ 학습: '', 동아리: '', 공간: '', 방과후: '', 친구관계: '' })
   const [activeArea, setActiveArea] = useState(0)
 
   // 단일 분석 상태
-  const [singleArea, setSingleArea] = useState(null)   // 선택된 영역 key
+  const [singleArea, setSingleArea] = useState(null)
   const [singleValue, setSingleValue] = useState('')
+
+  // 포스터 분석 상태
+  const [posterFile, setPosterFile] = useState(null)   // { base64, mediaType, preview }
+  const [posterLoading, setPosterLoading] = useState(false)
+  const [posterError, setPosterError] = useState('')
+  const fileInputRef = useRef(null)
+
+  // 수행평가 분석 상태
+  const [projectTopic, setProjectTopic] = useState('')
+  const [projectSubject, setProjectSubject] = useState('')
+  const [projectLoading, setProjectLoading] = useState(false)
+  const [projectError, setProjectError] = useState('')
 
   const { analyze, loading } = useAnalyze()
   const { save } = useHistory()
@@ -111,6 +149,63 @@ export default function Select() {
     }
   }
 
+  // 포스터 이미지 선택
+  async function handleFileChange(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPosterError('')
+    try {
+      const compressed = await compressImage(file)
+      setPosterFile(compressed)
+    } catch {
+      setPosterError('이미지 처리 중 오류가 발생했습니다')
+    }
+  }
+
+  // 포스터 분석 제출
+  async function handlePosterAnalyze() {
+    if (!posterFile) return
+    setPosterLoading(true)
+    setPosterError('')
+    try {
+      const res = await fetch(`${API_BASE}/api/poster`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: posterFile.base64, mediaType: posterFile.mediaType }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || '분석 실패')
+      const analysisId = await save({ selections: { poster: posterFile.preview }, result: data, mode: 'poster' })
+      navigate('/result', { state: { result: data, selections: {}, analysisId, mode: 'poster', posterInfo: data.posterInfo } })
+    } catch (e) {
+      setPosterError(e.message)
+    } finally {
+      setPosterLoading(false)
+    }
+  }
+
+  // 수행평가 분석 제출
+  async function handleProjectAnalyze() {
+    if (!projectTopic.trim()) return
+    setProjectLoading(true)
+    setProjectError('')
+    try {
+      const res = await fetch(`${API_BASE}/api/project`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic: projectTopic, subject: projectSubject }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || '분석 실패')
+      const analysisId = await save({ selections: { topic: projectTopic, subject: projectSubject }, result: data, mode: 'project' })
+      navigate('/result', { state: { result: data, selections: {}, analysisId, mode: 'project', projectTopic, projectSubject } })
+    } catch (e) {
+      setProjectError(e.message)
+    } finally {
+      setProjectLoading(false)
+    }
+  }
+
   const selectedAreaInfo = AREAS.find(a => a.key === singleArea)
 
   return (
@@ -139,26 +234,27 @@ export default function Select() {
         )}
       </div>
 
-      {/* 모드 탭 */}
+      {/* 모드 탭 — 2×2 그리드 */}
       <div style={{
-        display: 'flex', gap: 0, marginBottom: 36,
-        background: 'var(--bg-3)', borderRadius: 14, padding: 4,
-        border: '1px solid var(--card-border)',
+        display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 36,
       }}>
         {[
-          { id: 'full', label: '🦋 전체 분석', desc: '5가지 영역 모두' },
-          { id: 'single', label: '🔍 단일 분석', desc: '1가지 영역만' },
+          { id: 'full',    label: '🦋 전체 분석',  desc: '5가지 영역 모두' },
+          { id: 'single',  label: '🔍 단일 분석',  desc: '1가지 영역만' },
+          { id: 'poster',  label: '📸 포스터 분석', desc: '행사 포스터 촬영' },
+          { id: 'project', label: '📝 수행평가 분석', desc: '주제 → 진로 연결' },
         ].map(tab => (
           <button key={tab.id} onClick={() => setMode(tab.id)} style={{
-            flex: 1, padding: '12px 16px', borderRadius: 10, cursor: 'pointer',
-            fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.92rem', fontWeight: 700,
-            border: 'none', transition: 'all 0.2s',
-            background: mode === tab.id ? 'linear-gradient(135deg, var(--purple), var(--teal))' : 'transparent',
+            padding: '12px 10px', borderRadius: 12, cursor: 'pointer',
+            fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.88rem', fontWeight: 700,
+            border: `2px solid ${mode === tab.id ? 'transparent' : 'var(--card-border)'}`,
+            transition: 'all 0.2s',
+            background: mode === tab.id ? 'linear-gradient(135deg, var(--purple), var(--teal))' : 'var(--card-bg)',
             color: mode === tab.id ? '#fff' : 'var(--text-muted)',
-            boxShadow: mode === tab.id ? '0 2px 12px rgba(124,58,237,0.3)' : 'none',
+            boxShadow: mode === tab.id ? '0 2px 12px rgba(124,58,237,0.25)' : 'none',
           }}>
             {tab.label}
-            <span style={{ display: 'block', fontSize: '0.72rem', fontWeight: 400, opacity: 0.8, marginTop: 2 }}>
+            <span style={{ display: 'block', fontSize: '0.7rem', fontWeight: 400, opacity: 0.8, marginTop: 2 }}>
               {tab.desc}
             </span>
           </button>
@@ -393,6 +489,155 @@ export default function Select() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── 포스터 분석 모드 ── */}
+      {mode === 'poster' && (
+        <div style={{ animation: 'fadeUp 0.3s ease' }}>
+          <p style={{
+            textAlign: 'center', color: 'var(--text-muted)',
+            fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.9rem', marginBottom: 24,
+          }}>
+            학교 행사 포스터를 업로드하면 AI가 내용을 분석해 나비효과를 예측합니다
+          </p>
+
+          {/* 업로드 영역 */}
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              border: `2px dashed ${posterFile ? 'var(--purple)' : 'var(--card-border)'}`,
+              borderRadius: 20, padding: 32, textAlign: 'center', cursor: 'pointer',
+              background: posterFile ? 'rgba(124,58,237,0.04)' : 'var(--card-bg)',
+              transition: 'all 0.2s', marginBottom: 20,
+            }}
+          >
+            {posterFile ? (
+              <>
+                <img
+                  src={posterFile.preview}
+                  alt="업로드된 포스터"
+                  style={{ maxWidth: '100%', maxHeight: 320, borderRadius: 12, marginBottom: 12, objectFit: 'contain' }}
+                />
+                <p style={{ fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.85rem', color: 'var(--purple-light)' }}>
+                  ✓ 이미지 준비 완료 · 클릭하면 변경
+                </p>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: '3rem', marginBottom: 12 }}>📸</div>
+                <p style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 700, marginBottom: 6 }}>
+                  포스터 이미지 업로드
+                </p>
+                <p style={{ fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  클릭하거나 파일을 드래그하세요 · JPG, PNG, HEIC
+                </p>
+              </>
+            )}
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
+          />
+
+          {posterError && (
+            <div style={{
+              padding: '10px 14px', borderRadius: 10, marginBottom: 16,
+              background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)',
+              color: '#ef4444', fontSize: '0.85rem', fontFamily: "'Noto Sans KR', sans-serif",
+            }}>{posterError}</div>
+          )}
+
+          <div style={{ textAlign: 'center' }}>
+            <button
+              className="btn-primary"
+              onClick={handlePosterAnalyze}
+              disabled={!posterFile || posterLoading}
+              style={{ fontSize: '1.05rem', padding: '16px 48px' }}
+            >
+              {posterLoading ? '📸 AI가 포스터 분석 중...' : '📸 포스터 나비효과 분석하기'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── 수행평가 분석 모드 ── */}
+      {mode === 'project' && (
+        <div style={{ animation: 'fadeUp 0.3s ease' }}>
+          <p style={{
+            textAlign: 'center', color: 'var(--text-muted)',
+            fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.9rem', marginBottom: 24,
+          }}>
+            수행평가 주제를 입력하면 나비효과 분석 + 관련 직업 추천 + 진로 검사 안내를 받을 수 있어요
+          </p>
+
+          <div className="card" style={{ marginBottom: 20 }}>
+            {/* 과목 선택 */}
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", marginBottom: 10, fontWeight: 600 }}>
+              과목 <span style={{ fontWeight: 400 }}>(선택)</span>
+            </p>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+              {SUBJECTS.map(s => (
+                <button key={s} onClick={() => setProjectSubject(prev => prev === s ? '' : s)} style={{
+                  padding: '6px 14px', borderRadius: 99, cursor: 'pointer',
+                  fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.82rem',
+                  border: `2px solid ${projectSubject === s ? 'var(--purple)' : 'var(--card-border)'}`,
+                  background: projectSubject === s ? 'rgba(124,58,237,0.1)' : 'var(--bg-3)',
+                  color: projectSubject === s ? 'var(--purple-light)' : 'var(--text-secondary)',
+                  fontWeight: projectSubject === s ? 700 : 400,
+                  transition: 'all 0.15s',
+                }}>
+                  {s}
+                </button>
+              ))}
+            </div>
+
+            {/* 주제 입력 */}
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", marginBottom: 10, fontWeight: 600 }}>
+              수행평가 주제 <span style={{ color: '#ef4444' }}>*</span>
+            </p>
+            <textarea
+              value={projectTopic}
+              onChange={e => setProjectTopic(e.target.value.slice(0, 300))}
+              placeholder="예: 기후변화가 생태계에 미치는 영향 / 인공지능과 미래 직업 변화 / 조선시대 신분제도 분석..."
+              rows={4}
+              style={{
+                width: '100%', background: 'transparent', border: '1px solid var(--card-border)',
+                borderRadius: 12, padding: '12px 16px', color: 'var(--text-primary)',
+                fontSize: '0.95rem', resize: 'none', outline: 'none',
+                fontFamily: "'Noto Sans KR', sans-serif", lineHeight: 1.6,
+                transition: 'border-color 0.2s', boxSizing: 'border-box',
+              }}
+              onFocus={e => e.target.style.borderColor = 'var(--purple)'}
+              onBlur={e => e.target.style.borderColor = 'var(--card-border)'}
+            />
+            <div style={{ textAlign: 'right', fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: 4, fontFamily: "'Noto Sans KR', sans-serif" }}>
+              {projectTopic.length}/300
+            </div>
+          </div>
+
+          {projectError && (
+            <div style={{
+              padding: '10px 14px', borderRadius: 10, marginBottom: 16,
+              background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)',
+              color: '#ef4444', fontSize: '0.85rem', fontFamily: "'Noto Sans KR', sans-serif",
+            }}>{projectError}</div>
+          )}
+
+          <div style={{ textAlign: 'center' }}>
+            <button
+              className="btn-primary"
+              onClick={handleProjectAnalyze}
+              disabled={!projectTopic.trim() || projectLoading}
+              style={{ fontSize: '1.05rem', padding: '16px 48px' }}
+            >
+              {projectLoading ? '📝 AI가 분석 중...' : '📝 수행평가 나비효과 분석하기'}
+            </button>
+          </div>
         </div>
       )}
     </div>

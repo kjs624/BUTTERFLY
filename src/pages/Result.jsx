@@ -33,7 +33,12 @@ export default function Result() {
   const selections = sharedData?.selections || state?.selections
   const analysisId = state?.analysisId ?? null
   const isSingle = state?.mode === 'single'
+  const isPoster = state?.mode === 'poster'
+  const isProject = state?.mode === 'project'
   const focusArea = state?.focusArea || null
+  const posterInfo = state?.posterInfo || null
+  const projectTopic = state?.projectTopic || null
+  const projectSubject = state?.projectSubject || null
 
   const AREA_LABELS = {
     학습: { label: '학습 방법', icon: '📚' },
@@ -57,8 +62,10 @@ export default function Result() {
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: 48, animation: 'fadeUp 0.4s ease' }}>
         <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 'clamp(1.8rem, 4vw, 2.4rem)', marginBottom: 12 }}>
-          {isSingle ? '🔍' : '🦋'} 나비효과 분석 결과
+          {isPoster ? '📸' : isProject ? '📝' : isSingle ? '🔍' : '🦋'} 나비효과 분석 결과
         </h1>
+
+        {/* 단일 분석 배지 */}
         {isSingle && focusArea && AREA_LABELS[focusArea] && (
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -71,8 +78,38 @@ export default function Result() {
             </span>
           </div>
         )}
+
+        {/* 포스터 분석 배지 */}
+        {isPoster && posterInfo && (
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            padding: '6px 16px', borderRadius: 99, marginBottom: 12,
+            background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)',
+          }}>
+            <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.85rem', fontWeight: 700, color: 'var(--purple-light)' }}>
+              📸 {posterInfo.eventName} · {posterInfo.eventType}
+            </span>
+          </div>
+        )}
+
+        {/* 수행평가 분석 배지 */}
+        {isProject && projectTopic && (
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            padding: '6px 16px', borderRadius: 99, marginBottom: 12,
+            background: 'rgba(8,145,178,0.12)', border: '1px solid rgba(8,145,178,0.3)',
+          }}>
+            <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.85rem', fontWeight: 700, color: 'var(--teal)' }}>
+              📝 {projectSubject ? `[${projectSubject}] ` : ''}{projectTopic.slice(0, 30)}{projectTopic.length > 30 ? '...' : ''}
+            </span>
+          </div>
+        )}
+
         <p style={{ color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>
-          {isSingle ? '선택한 항목이 만들어낼 연쇄 파급효과입니다' : '당신의 선택이 만들어낼 연쇄 파급효과입니다'}
+          {isPoster ? '행사 참여가 만들어낼 연쇄 파급효과입니다'
+            : isProject ? '수행평가가 진로에 만들어낼 나비효과입니다'
+            : isSingle ? '선택한 항목이 만들어낼 연쇄 파급효과입니다'
+            : '당신의 선택이 만들어낼 연쇄 파급효과입니다'}
         </p>
       </div>
 
@@ -121,6 +158,69 @@ export default function Result() {
           <h3 style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 700, marginBottom: 12, color: 'var(--amber)' }}>⚠️ 격차 경보</h3>
           <p style={{ lineHeight: 1.8, fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.95rem' }}>{result.gap}</p>
         </div>
+      )}
+
+      {/* 수행평가 전용 — 직업 추천 + 진로 검사 */}
+      {isProject && result.careers?.length > 0 && (
+        <>
+          <div className="card" style={{ marginBottom: 24, animation: 'fadeUp 0.4s ease 0.35s both' }}>
+            <h3 style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 700, marginBottom: 16, fontSize: '1rem' }}>
+              💼 관련 추천 직업
+            </h3>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              {result.careers.map((career, i) => (
+                <span key={i} style={{
+                  padding: '8px 16px', borderRadius: 99, fontSize: '0.88rem', fontWeight: 600,
+                  background: i === 0 ? 'linear-gradient(135deg, var(--purple), var(--teal))' : 'var(--bg-3)',
+                  color: i === 0 ? '#fff' : 'var(--text-secondary)',
+                  border: `1px solid ${i === 0 ? 'transparent' : 'var(--card-border)'}`,
+                  fontFamily: "'Noto Sans KR', sans-serif",
+                }}>
+                  {i === 0 ? '⭐ ' : ''}{career}
+                </span>
+              ))}
+            </div>
+            {result.keywords?.length > 0 && (
+              <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--card-border)' }}>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif", marginBottom: 8 }}>
+                  🔑 이 수행평가로 기를 수 있는 핵심 역량
+                </p>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {result.keywords.map((kw, i) => (
+                    <span key={i} style={{
+                      padding: '4px 12px', borderRadius: 99, fontSize: '0.78rem',
+                      background: 'rgba(0,201,167,0.1)', border: '1px solid rgba(0,201,167,0.3)',
+                      color: 'var(--mint)', fontFamily: "'Noto Sans KR', sans-serif",
+                    }}>
+                      {kw}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {result.careerTestType && (
+            <div className="card" style={{
+              marginBottom: 40, animation: 'fadeUp 0.4s ease 0.4s both',
+              borderColor: 'rgba(124,58,237,0.3)', background: 'rgba(124,58,237,0.04)',
+            }}>
+              <h3 style={{ fontFamily: "'Noto Sans KR', sans-serif", fontWeight: 700, marginBottom: 10, color: 'var(--purple-light)' }}>
+                🎯 추천 진로 검사
+              </h3>
+              <p style={{ fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.9rem', marginBottom: 12, lineHeight: 1.7 }}>
+                <strong>직업흥미검사 {result.careerTestType}</strong> — {result.careerTestReason}
+              </p>
+              <button
+                className="btn-primary"
+                onClick={() => navigate('/career-test')}
+                style={{ fontSize: '0.9rem', padding: '10px 24px' }}
+              >
+                🔍 진로 검사 바로 받기 →
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       <hr style={{ border: 'none', borderTop: '1px solid var(--card-border)', margin: '48px 0' }} />
