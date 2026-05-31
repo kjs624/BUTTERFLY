@@ -30,7 +30,7 @@ import CareerTest from './pages/CareerTest'
 import School from './pages/School'
 
 // 비로그인 시 /auth로 리디렉트 (공개 경로 제외)
-const PUBLIC_PATHS = ['/auth', '/career-test', '/school', '/map', '/select', '/result']
+const PUBLIC_PATHS = ['/auth', '/school', '/map', '/select', '/result']
 
 function AuthGuard() {
   const { user, loading } = useAuth()
@@ -42,7 +42,7 @@ function AuthGuard() {
     const isGuest = !!sessionStorage.getItem('butterfly_guest')
     const isPublic = PUBLIC_PATHS.some(p => location.pathname === p || location.pathname.startsWith(p + '/'))
     // 비회원(게스트)은 /my 제외 모든 경로 허용
-    const guestBlocked = isGuest && location.pathname === '/my'
+    const guestBlocked = isGuest && (location.pathname === '/my' || location.pathname.startsWith('/career-test'))
     if (!user && !isPublic && !isGuest) {
       navigate('/auth', { replace: true })
     } else if (guestBlocked) {

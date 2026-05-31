@@ -26,7 +26,7 @@ const steps = [
     emoji: '🧠',
     title: '진로 심리 검사 (RIASEC)',
     desc: 'Holland 직업 흥미 유형 검사로\n나에게 맞는 진로를 추천받으세요.',
-    tag: '비회원도 무료 이용 가능',
+    tag: '회원가입 후 이용 가능',
   },
   {
     emoji: '🗺️',

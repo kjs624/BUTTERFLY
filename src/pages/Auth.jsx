@@ -241,7 +241,7 @@ export default function Auth() {
           onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--purple)'; e.currentTarget.style.color = 'var(--purple-light)' }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--card-border)'; e.currentTarget.style.color = 'var(--text-muted)' }}
         >
-          🔍 비회원으로 진로 심리 검사 시작
+          비회원으로 시작하기
         </button>
 
         <button onClick={() => navigate(-1)} style={{
