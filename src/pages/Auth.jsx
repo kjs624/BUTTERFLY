@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import ButterflyLogo from '../components/ButterflyLogo'
+import Tutorial, { TUTORIAL_KEY } from '../components/Tutorial'
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 48 48">
@@ -26,8 +27,22 @@ export default function Auth() {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [oauthLoading, setOauthLoading] = useState('')
+  const [tutorialDest, setTutorialDest] = useState(null)
   const { signIn, signUp, signInWithOAuth } = useAuth()
   const navigate = useNavigate()
+
+  const openTutorial = (dest) => {
+    if (localStorage.getItem(TUTORIAL_KEY)) {
+      navigate(dest)
+    } else {
+      setTutorialDest(dest)
+    }
+  }
+
+  const handleTutorialClose = () => {
+    setTutorialDest(null)
+    navigate(tutorialDest)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -40,7 +55,7 @@ export default function Auth() {
       } else {
         const { error } = await signUp(email, password)
         if (error) throw error
-        navigate('/career-test?new=true')
+        openTutorial('/career-test?new=true')
       }
     } catch (err) {
       const msg = err.message || ''
@@ -72,6 +87,8 @@ export default function Auth() {
   }
 
   return (
+    <>
+    {tutorialDest && <Tutorial onClose={handleTutorialClose} />}
     <div className="page" style={{
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '40px 20px', minHeight: '100vh',
@@ -202,7 +219,7 @@ export default function Auth() {
 
         {/* 비회원으로 시작 */}
         <button
-          onClick={() => navigate('/career-test?guest=true')}
+          onClick={() => openTutorial('/career-test?guest=true')}
           style={{
             width: '100%', padding: '13px', borderRadius: 12,
             fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.9rem', fontWeight: 600,
@@ -225,5 +242,6 @@ export default function Auth() {
         </button>
       </div>
     </div>
+    </>
   )
 }
