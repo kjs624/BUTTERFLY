@@ -4,11 +4,13 @@ const http = require('http')
 const CAREER_API_KEY = process.env.CAREER_NET_API_KEY || '43f5190dec8329d2d10afc58319967f6'
 
 // 커리어넷 공식 API 파라미터 (POST + JSON 방식)
-// q=6  → 직업가치관검사 질문, qestrnSeq=6  trgetSe=100208
+// q=5  → 직업흥미검사H형 질문, qestrnSeq=5  trgetSe=100207
 // q=7  → 직업흥미검사K형 질문,  qestrnSeq=7  trgetSe=100207
 const VERSIONS = {
-  1: { q: '5', qestrnSeq: '5', trgetSe: '100207', name: '직업흥미검사(H형)', target: '고등학생' },
-  2: { q: '7', qestrnSeq: '7', trgetSe: '100207', name: '직업흥미검사(K형)', target: '고등학생' },
+  1: { q: '5', qestrnSeq: '5', trgetSe: '100207', name: '직업흥미검사(H형)', target: '고등학생',
+       resultPath: 'interestHigh' },
+  2: { q: '7', qestrnSeq: '7', trgetSe: '100207', name: '직업흥미검사(K형)', target: '고등학생',
+       resultPath: 'interestJob' },
 }
 
 // GET 요청 (질문 조회용)
@@ -119,8 +121,8 @@ module.exports = async function handler(req, res) {
     const now = startDtm || new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14)
 
     // answers 형식 구성
-    // V1 (직업가치관검사): "B1=점수값 B2=점수값..." (B 접두사 + 공백 구분)
-    // V2 (K형):           "1=위치값 2=위치값..."  (번호 접두사 + 공백 구분)
+    // V1 (H형): "B1=점수값 B2=점수값..." (B 접두사 + 공백 구분, answerScore 값)
+    // V2 (K형): "1=위치값 2=위치값..."  (번호 접두사 + 공백 구분)
     const answersStr = answers
       .map((a, i) => ver === 1 ? `B${i + 1}=${a}` : `${i + 1}=${a}`)
       .join(' ')
@@ -140,13 +142,21 @@ module.exports = async function handler(req, res) {
 
     try {
       const data = await postJson(requestBody)
+      console.log('[career-test] raw response:', JSON.stringify(data).slice(0, 500))
       const result = data?.RESULT || data?.result || data
-      const url = result?.url || result?.URL || ''
-      console.log('[career-test] report success, url:', url)
+      const inspctSeq = result?.inspctSeq || result?.INSPCT_SEQ || ''
+
+      // API가 반환한 URL 우선, 없거나 결과 페이지가 아니면 inspctSeq로 직접 구성
+      let url = result?.url || result?.URL || ''
+      if ((!url || !url.includes('report')) && inspctSeq) {
+        url = `https://www.career.go.kr/inspct/web/psycho/${config.resultPath}/report?seq=${inspctSeq}`
+      }
+      console.log('[career-test] report success, inspctSeq:', inspctSeq, 'url:', url)
       res.status(200).json({
         ok: true,
         result,
         url,
+        inspctSeq,
         version: ver,
         config,
       })
