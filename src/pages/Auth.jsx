@@ -53,10 +53,16 @@ export default function Auth() {
         if (!autoLogin) sessionStorage.setItem('butterfly_session_active', 'true')
         navigate('/my')
       } else {
-        const { error } = await signUp(email, password)
+        const { data, error } = await signUp(email, password)
         if (error) throw error
-        // 신규 가입은 항상 튜토리얼 표시
-        setTutorialDest('/career-test?new=true')
+        // 가입 후 세션이 없으면 자동 로그인
+        if (!data.session) {
+          const { error: loginErr } = await signIn(email, password)
+          if (loginErr) throw loginErr
+        }
+        localStorage.setItem('butterfly_auto_login', 'true')
+        sessionStorage.setItem('butterfly_session_active', 'true')
+        navigate('/career-test?new=true')
       }
     } catch (err) {
       const msg = err.message || ''
