@@ -39,8 +39,13 @@ function AuthGuard() {
 
   useEffect(() => {
     if (loading) return
+    const isGuest = !!sessionStorage.getItem('butterfly_guest')
     const isPublic = PUBLIC_PATHS.some(p => location.pathname === p || location.pathname.startsWith(p + '/'))
-    if (!user && !isPublic) {
+    // 비회원(게스트)은 /my 제외 모든 경로 허용
+    const guestBlocked = isGuest && location.pathname === '/my'
+    if (!user && !isPublic && !isGuest) {
+      navigate('/auth', { replace: true })
+    } else if (guestBlocked) {
       navigate('/auth', { replace: true })
     }
   }, [user, loading, location.pathname])

@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import ButterflyLogo from '../components/ButterflyLogo'
-import Tutorial, { TUTORIAL_KEY } from '../components/Tutorial'
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 48 48">
@@ -28,18 +27,8 @@ export default function Auth() {
   const [loading, setLoading] = useState(false)
   const [oauthLoading, setOauthLoading] = useState('')
   const [autoLogin, setAutoLogin] = useState(true)
-  const [tutorialDest, setTutorialDest] = useState(null)
   const { signIn, signUp, signInWithOAuth } = useAuth()
   const navigate = useNavigate()
-
-  const openTutorial = (dest) => {
-    navigate(dest)
-  }
-
-  const handleTutorialClose = () => {
-    setTutorialDest(null)
-    navigate(tutorialDest)
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -95,7 +84,6 @@ export default function Auth() {
 
   return (
     <>
-    {tutorialDest && <Tutorial onClose={handleTutorialClose} />}
     <div className="page" style={{
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '40px 20px', minHeight: '100vh',
@@ -242,7 +230,7 @@ export default function Auth() {
 
         {/* 비회원으로 시작 */}
         <button
-          onClick={() => openTutorial('/career-test?guest=true')}
+          onClick={() => { sessionStorage.setItem('butterfly_guest', 'true'); navigate('/') }}
           style={{
             width: '100%', padding: '13px', borderRadius: 12,
             fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.9rem', fontWeight: 600,
