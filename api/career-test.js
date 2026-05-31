@@ -3,15 +3,15 @@ const http = require('http')
 
 const CAREER_API_KEY = process.env.CAREER_NET_API_KEY || '43f5190dec8329d2d10afc58319967f6'
 
-// CareerNet 공식 API 코드표 (https://www.career.go.kr/cnet/front/openapi/openApiTestCenter.do)
-// trgetSe: 100206=중학생, 100207=고등학생, 100208-100215=대학생/일반
-// qestrnSeq: 24=직업가치관검사(중학생), 25=직업가치관검사(고등학생)
-//            30=직업흥미검사K(중학생),  31=직업흥미검사K(고등학생)
+// 커리어넷 공식 API 파라미터 (POST + JSON 방식)
+// q=6  → 직업가치관검사 질문, qestrnSeq=6  trgetSe=100208
+// q=7  → 직업흥미검사K형 질문,  qestrnSeq=7  trgetSe=100207
 const VERSIONS = {
-  1: { q: '6', qestrnSeq: '25', trgetSe: '100207', name: '직업가치관검사', target: '고등학생' },
-  2: { q: '7', qestrnSeq: '31', trgetSe: '100207', name: '직업흥미검사(K형)', target: '고등학생' },
+  1: { q: '6', qestrnSeq: '6', trgetSe: '100208', name: '직업가치관검사', target: '일반' },
+  2: { q: '7', qestrnSeq: '7', trgetSe: '100207', name: '직업흥미검사(K형)', target: '고등학생' },
 }
 
+// GET 요청 (질문 조회용)
 function fetchUrl(url) {
   return new Promise((resolve, reject) => {
     const lib = url.startsWith('https') ? https : http
@@ -21,15 +21,50 @@ function fetchUrl(url) {
       res.on('end', () => {
         try {
           const json = JSON.parse(data)
-          // HTTP 4xx/5xx 또는 JSON 내 error 필드 감지
-          if (res.statusCode >= 400 || (json.error && json.status >= 400)) {
-            reject(new Error(`커리어넷 API 오류 ${res.statusCode}: ${json.error || data.slice(0, 200)}`))
+          if (res.statusCode >= 400) {
+            reject(new Error(`커리어넷 API 오류 ${res.statusCode}: ${data.slice(0, 200)}`))
           } else {
             resolve(json)
           }
         } catch (e) { reject(new Error('파싱 오류: ' + data.slice(0, 300))) }
       })
     }).on('error', reject)
+  })
+}
+
+// POST + JSON 요청 (결과 제출용)
+function postJson(body) {
+  return new Promise((resolve, reject) => {
+    const bodyStr = JSON.stringify(body)
+    const options = {
+      hostname: 'www.career.go.kr',
+      path: '/inspct/openapi/test/report',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(bodyStr),
+        'User-Agent': 'Mozilla/5.0',
+      },
+    }
+    const req = https.request(options, (res) => {
+      let data = ''
+      res.on('data', chunk => { data += chunk })
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data)
+          if (json.SUCC_YN === 'N') {
+            reject(new Error(`커리어넷 오류: ${json.ERROR_REASON || '알 수 없는 오류'}`))
+          } else if (res.statusCode >= 400) {
+            reject(new Error(`커리어넷 API 오류 ${res.statusCode}: ${data.slice(0, 200)}`))
+          } else {
+            resolve(json)
+          }
+        } catch (e) { reject(new Error('파싱 오류: ' + data.slice(0, 300))) }
+      })
+    })
+    req.on('error', reject)
+    req.write(bodyStr)
+    req.end()
   })
 }
 
@@ -63,7 +98,6 @@ module.exports = async function handler(req, res) {
 
     try {
       const data = await fetchUrl(url)
-      // 커리어넷 응답 정규화 (result 배열 추출)
       const questions = data?.result || data?.RESULT || []
       res.status(200).json({ ok: true, questions, config })
     } catch (err) {
@@ -80,24 +114,40 @@ module.exports = async function handler(req, res) {
 
     if (!answers.length) return res.status(400).json({ ok: false, error: '답변이 없습니다' })
 
-    const config = VERSIONS[parseInt(version)] || VERSIONS[1]
+    const ver = parseInt(version)
+    const config = VERSIONS[ver] || VERSIONS[1]
     const now = startDtm || new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14)
-    // 커리어넷 API 답변 형식: "1=val1 2=val2 3=val3..." (번호=값 공백 구분, 공백은 + 인코딩)
-    const answersStr = answers.map((a, i) => `${i + 1}=${encodeURIComponent(String(a))}`).join('+')
 
-    const url = `https://www.career.go.kr/inspct/openapi/test/report?apikey=${CAREER_API_KEY}&qestrnSeq=${config.qestrnSeq}&trgetSe=${config.trgetSe}&gender=${gender}&school=&grade=${grade}&startDtm=${now}&answers=${answersStr}`
-    console.log(`[career-test] report → qestrnSeq=${config.qestrnSeq} trgetSe=${config.trgetSe} answers(${answers.length}):`, answersStr.slice(0, 120))
+    // answers 형식 구성
+    // V1 (직업가치관검사): "B1=점수값 B2=점수값..." (B 접두사 + 공백 구분)
+    // V2 (K형):           "1=위치값 2=위치값..."  (번호 접두사 + 공백 구분)
+    const answersStr = answers
+      .map((a, i) => ver === 1 ? `B${i + 1}=${a}` : `${i + 1}=${a}`)
+      .join(' ')
+
+    const requestBody = {
+      apikey: CAREER_API_KEY,
+      qestrnSeq: config.qestrnSeq,
+      trgetSe: config.trgetSe,
+      gender,
+      school: '',
+      grade,
+      startDtm: now,
+      answers: answersStr,
+    }
+
+    console.log(`[career-test] POST report → qestrnSeq=${config.qestrnSeq} trgetSe=${config.trgetSe} gender=${gender} grade=${grade} answers(${answers.length}):`, answersStr.slice(0, 120))
 
     try {
-      const data = await fetchUrl(url)
-      // 커리어넷은 RESULT(대문자) 또는 result(소문자)로 반환
-      const result = data?.result || data?.RESULT || data
-      console.log('[career-test] report raw keys:', Object.keys(data || {}))
-      console.log('[career-test] result keys:', Object.keys(result || {}))
+      const data = await postJson(requestBody)
+      const result = data?.RESULT || data?.result || data
+      const url = result?.url || result?.URL || ''
+      console.log('[career-test] report success, url:', url)
       res.status(200).json({
         ok: true,
         result,
-        version: parseInt(version),
+        url,
+        version: ver,
         config,
       })
     } catch (err) {

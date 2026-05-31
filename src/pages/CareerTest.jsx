@@ -226,23 +226,9 @@ export default function CareerTest() {
 
       const rawResult = data.result || {}
 
-      // 전체 응답 구조 로깅 (디버깅용)
-      console.log('[CareerTest] 전체 응답:', JSON.stringify(data, null, 2))
-
-      // 재귀적으로 http URL 찾기
-      function findUrlRecursive(obj, depth = 0) {
-        if (depth > 5 || !obj || typeof obj !== 'object') return ''
-        for (const key of Object.keys(obj)) {
-          const val = obj[key]
-          if (typeof val === 'string' && val.startsWith('http')) return val
-          if (typeof val === 'object' && val !== null) {
-            const found = findUrlRecursive(val, depth + 1)
-            if (found) return found
-          }
-        }
-        return ''
-      }
-      const url = findUrlRecursive(rawResult) || findUrlRecursive(data)
+      // 백엔드가 직접 url 필드로 반환, 없으면 result 내부 탐색
+      const url = data.url || rawResult?.url || rawResult?.URL || ''
+      console.log('[CareerTest] 결과 URL:', url)
       setResultUrl(url)
       setResultData(rawResult)
 
