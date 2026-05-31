@@ -70,7 +70,7 @@ export default function Auth() {
       if (msg.includes('Invalid login')) setError('이메일 또는 비밀번호가 올바르지 않습니다.')
       else if (msg.includes('already registered')) setError('이미 가입된 이메일입니다. 로그인 탭을 이용해주세요.')
       else if (msg.includes('Password should')) setError('비밀번호는 6자 이상이어야 합니다.')
-      else if (msg.toLowerCase().includes('rate limit') || isEmptyErr) setError('이메일 발송 한도 초과입니다. 잠시 후 다시 시도하거나 Google/카카오로 가입해주세요.')
+      else if (msg.toLowerCase().includes('rate limit') || isEmptyErr) setError('이메일 발송 한도 초과입니다. 잠시 후 다시 시도하거나 Google로 가입해주세요.')
       else setError(msg || '오류가 발생했습니다.')
     } finally { setLoading(false) }
   }
