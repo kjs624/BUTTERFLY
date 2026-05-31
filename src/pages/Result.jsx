@@ -32,6 +32,16 @@ export default function Result() {
   const result = sharedData?.result || state?.result
   const selections = sharedData?.selections || state?.selections
   const analysisId = state?.analysisId ?? null
+  const isSingle = state?.mode === 'single'
+  const focusArea = state?.focusArea || null
+
+  const AREA_LABELS = {
+    학습: { label: '학습 방법', icon: '📚' },
+    동아리: { label: '동아리 활동', icon: '🎭' },
+    공간: { label: '학교 공간', icon: '🏫' },
+    방과후: { label: '방과후 활동', icon: '🎨' },
+    친구관계: { label: '친구·관계', icon: '👥' },
+  }
 
   if (!result) {
     return (
@@ -47,10 +57,22 @@ export default function Result() {
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: 48, animation: 'fadeUp 0.4s ease' }}>
         <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: 'clamp(1.8rem, 4vw, 2.4rem)', marginBottom: 12 }}>
-          🦋 나비효과 분석 결과
+          {isSingle ? '🔍' : '🦋'} 나비효과 분석 결과
         </h1>
+        {isSingle && focusArea && AREA_LABELS[focusArea] && (
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            padding: '6px 16px', borderRadius: 99, marginBottom: 12,
+            background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)',
+          }}>
+            <span>{AREA_LABELS[focusArea].icon}</span>
+            <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.85rem', fontWeight: 700, color: 'var(--purple-light)' }}>
+              {AREA_LABELS[focusArea].label} 단일 분석
+            </span>
+          </div>
+        )}
         <p style={{ color: 'var(--text-muted)', fontFamily: "'Noto Sans KR', sans-serif" }}>
-          당신의 선택이 만들어낼 연쇄 파급효과입니다
+          {isSingle ? '선택한 항목이 만들어낼 연쇄 파급효과입니다' : '당신의 선택이 만들어낼 연쇄 파급효과입니다'}
         </p>
       </div>
 

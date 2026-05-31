@@ -34,7 +34,7 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   const body = await parseBody(req)
-  const { selections } = body
+  const { selections, mode = 'full', focusArea = null } = body
 
   if (!selections) return res.status(400).json({ error: 'selections required' })
 
@@ -42,20 +42,15 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'ANTHROPIC_API_KEY 환경변수가 설정되지 않았습니다.' })
   }
 
-  const prompt = `당신은 교육 공공데이터 전문가이자 진로 상담사입니다.
-학생의 학교 선택을 분석해 나비효과를 JSON 형식으로 반환하세요.
+  const AREA_LABELS = {
+    학습: '학습 방법',
+    동아리: '동아리 활동',
+    공간: '학교 공간 이용',
+    방과후: '방과후 활동',
+    친구관계: '친구·관계',
+  }
 
-학생의 선택:
-- 학습 방법: ${selections.학습 || ''}
-- 동아리 활동: ${selections.동아리 || ''}
-- 학교 공간 이용: ${selections.공간 || ''}
-- 방과후 활동: ${selections.방과후 || ''}
-- 친구·관계: ${selections.친구관계 || ''}
-
-활용할 실제 교육 공공데이터:
-${PUBLIC_DATA_CONTEXT}
-
-아래 JSON 형식으로만 응답하세요 (마크다운 코드블록 없이 순수 JSON만):
+  const JSON_FORMAT = `아래 JSON 형식으로만 응답하세요 (마크다운 코드블록 없이 순수 JSON만):
 {
   "summary": "2~3문장 전체 요약",
   "short": "단기 나비효과 (1~6개월). 각 문장은 반드시 \\n으로 구분. 2~3문장. 실제 수치 포함.",
@@ -68,6 +63,44 @@ ${PUBLIC_DATA_CONTEXT}
   "gap": "지역 기회 격차 관련 경고 1~2문장 (없으면 null)",
   "sources": "학교알리미, KESS, 커리어넷"
 }`
+
+  let prompt
+
+  if (mode === 'single' && focusArea) {
+    // 단일 영역 집중 분석 프롬프트
+    const areaLabel = AREA_LABELS[focusArea] || focusArea
+    const areaValue = selections[focusArea] || ''
+    prompt = `당신은 교육 공공데이터 전문가이자 진로 상담사입니다.
+학생의 "${areaLabel}" 선택을 집중 분석해 나비효과를 JSON 형식으로 반환하세요.
+나머지 영역(학습·동아리·공간·방과후·친구관계)은 평균적인 학생 패턴으로 가정하세요.
+
+학생의 "${areaLabel}" 선택:
+${areaValue}
+
+활용할 실제 교육 공공데이터:
+${PUBLIC_DATA_CONTEXT}
+
+"${areaLabel}" 하나에 집중하여 이 선택이 학생의 미래에 미치는 구체적인 연쇄 효과를 분석하세요.
+summary에는 반드시 "${areaLabel}: [선택 내용]" 형태로 분석한 항목을 명시하세요.
+
+${JSON_FORMAT}`
+  } else {
+    // 전체 5개 영역 분석 프롬프트
+    prompt = `당신은 교육 공공데이터 전문가이자 진로 상담사입니다.
+학생의 학교 선택을 분석해 나비효과를 JSON 형식으로 반환하세요.
+
+학생의 선택:
+- 학습 방법: ${selections.학습 || ''}
+- 동아리 활동: ${selections.동아리 || ''}
+- 학교 공간 이용: ${selections.공간 || ''}
+- 방과후 활동: ${selections.방과후 || ''}
+- 친구·관계: ${selections.친구관계 || ''}
+
+활용할 실제 교육 공공데이터:
+${PUBLIC_DATA_CONTEXT}
+
+${JSON_FORMAT}`
+  }
 
   try {
     const message = await client.messages.create({

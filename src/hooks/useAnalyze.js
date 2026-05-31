@@ -5,7 +5,7 @@ export function useAnalyze() {
   const [error, setError] = useState(null)
   const [result, setResult] = useState(null)
 
-  const analyze = async (selections) => {
+  const analyze = async (selections, mode = 'full', focusArea = null) => {
     setLoading(true)
     setError(null)
     try {
@@ -13,7 +13,7 @@ export function useAnalyze() {
       const res = await fetch(`${base}/api/analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ selections }),
+        body: JSON.stringify({ selections, mode, focusArea }),
       })
       if (!res.ok) throw new Error(`서버 오류: ${res.status}`)
       const data = await res.json()
