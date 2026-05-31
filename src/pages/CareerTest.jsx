@@ -590,56 +590,50 @@ export default function CareerTest() {
                     />
                   )}
 
-                  {/* 2지선다 (예/아니오, 4지선다 등) */}
+                  {/* 2지선다 (예/아니오 등) — 위치값(1/2) 제출 */}
                   {!isTextQ && isTwoChoice && (
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                      {choiceLabels.map((label, val) => {
-                        const scoreVal = parseInt(q['answerScore0' + (val + 1)])
-                        return (
-                          <button key={val} onClick={() => setAnswer(globalIdx, scoreVal)} style={{
-                            padding: '14px', borderRadius: 12, cursor: 'pointer',
-                            fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.9rem', fontWeight: 600,
-                            border: `2px solid ${selected === scoreVal ? 'var(--teal)' : 'var(--card-border)'}`,
-                            background: selected === scoreVal ? 'rgba(8,145,178,0.12)' : 'var(--bg-3)',
-                            color: selected === scoreVal ? 'var(--teal)' : 'var(--text-secondary)',
-                            transition: 'all 0.15s',
-                          }}>
-                            {label}
-                          </button>
-                        )
-                      })}
+                      {choiceLabels.map((label, val) => (
+                        <button key={val} onClick={() => setAnswer(globalIdx, val + 1)} style={{
+                          padding: '14px', borderRadius: 12, cursor: 'pointer',
+                          fontFamily: "'Noto Sans KR', sans-serif", fontSize: '0.9rem', fontWeight: 600,
+                          border: `2px solid ${selected === val + 1 ? 'var(--teal)' : 'var(--card-border)'}`,
+                          background: selected === val + 1 ? 'rgba(8,145,178,0.12)' : 'var(--bg-3)',
+                          color: selected === val + 1 ? 'var(--teal)' : 'var(--text-secondary)',
+                          transition: 'all 0.15s',
+                        }}>
+                          {label}
+                        </button>
+                      ))}
                     </div>
                   )}
 
-                  {/* 다지선다 (3~5개) */}
+                  {/* 다지선다 (3~5개) — 위치값(1~5) 제출 */}
                   {!isTextQ && !isTwoChoice && (
                     <div style={{ display: 'flex', gap: 6, justifyContent: 'space-between' }}>
-                      {choiceLabels.map((label, val) => {
-                        const scoreVal = parseInt(q['answerScore0' + (val + 1)]) || (val + 1)
-                        return (
-                          <button key={val} onClick={() => setAnswer(globalIdx, scoreVal)} style={{
-                            flex: 1, padding: '10px 4px', borderRadius: 12, cursor: 'pointer',
-                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-                            border: `2px solid ${selected === scoreVal ? 'var(--teal)' : 'var(--card-border)'}`,
-                            background: selected === scoreVal ? 'rgba(8,145,178,0.12)' : 'var(--bg-3)',
-                            transition: 'all 0.15s',
-                          }}
-                            onMouseEnter={e => selected !== scoreVal && (e.currentTarget.style.borderColor = 'var(--teal)')}
-                            onMouseLeave={e => selected !== scoreVal && (e.currentTarget.style.borderColor = 'var(--card-border)')}
-                          >
-                            {choiceLabels.length === 5 && (
-                              <span style={{ fontSize: '1.1rem' }}>{emojis5[val]}</span>
-                            )}
-                            <span style={{
-                              fontSize: '0.72rem', color: selected === scoreVal ? 'var(--teal)' : 'var(--text-muted)',
-                              fontFamily: "'Noto Sans KR', sans-serif", fontWeight: selected === scoreVal ? 700 : 400,
-                              textAlign: 'center', lineHeight: 1.3,
-                            }}>
-                              {label}
-                            </span>
-                          </button>
-                        )
-                      })}
+                      {choiceLabels.map((label, val) => (
+                        <button key={val} onClick={() => setAnswer(globalIdx, val + 1)} style={{
+                          flex: 1, padding: '10px 4px', borderRadius: 12, cursor: 'pointer',
+                          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                          border: `2px solid ${selected === val + 1 ? 'var(--teal)' : 'var(--card-border)'}`,
+                          background: selected === val + 1 ? 'rgba(8,145,178,0.12)' : 'var(--bg-3)',
+                          transition: 'all 0.15s',
+                        }}
+                          onMouseEnter={e => selected !== val + 1 && (e.currentTarget.style.borderColor = 'var(--teal)')}
+                          onMouseLeave={e => selected !== val + 1 && (e.currentTarget.style.borderColor = 'var(--card-border)')}
+                        >
+                          {choiceLabels.length === 5 && (
+                            <span style={{ fontSize: '1.1rem' }}>{emojis5[val]}</span>
+                          )}
+                          <span style={{
+                            fontSize: '0.72rem', color: selected === val + 1 ? 'var(--teal)' : 'var(--text-muted)',
+                            fontFamily: "'Noto Sans KR', sans-serif", fontWeight: selected === val + 1 ? 700 : 400,
+                            textAlign: 'center', lineHeight: 1.3,
+                          }}>
+                            {label}
+                          </span>
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>

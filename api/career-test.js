@@ -82,11 +82,11 @@ module.exports = async function handler(req, res) {
 
     const config = VERSIONS[parseInt(version)] || VERSIONS[1]
     const now = startDtm || new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14)
-    // 쉼표는 그대로 두고 각 답변 값만 인코딩 (encodeURIComponent는 쉼표를 %2C로 바꿔서 400 오류 유발)
-    const answersStr = answers.map(a => encodeURIComponent(String(a))).join(',')
+    // 커리어넷 API 답변 형식: "1=val1 2=val2 3=val3..." (번호=값 공백 구분, 공백은 + 인코딩)
+    const answersStr = answers.map((a, i) => `${i + 1}=${encodeURIComponent(String(a))}`).join('+')
 
     const url = `https://www.career.go.kr/inspct/openapi/test/report?apikey=${CAREER_API_KEY}&qestrnSeq=${config.qestrnSeq}&trgetSe=${config.trgetSe}&gender=${gender}&school=&grade=${grade}&startDtm=${now}&answers=${answersStr}`
-    console.log(`[career-test] report → qestrnSeq=${config.qestrnSeq} trgetSe=${config.trgetSe} gender=${gender} grade=${grade} answers(${answers.length}):`, answersStr.slice(0, 100))
+    console.log(`[career-test] report → qestrnSeq=${config.qestrnSeq} trgetSe=${config.trgetSe} answers(${answers.length}):`, answersStr.slice(0, 120))
 
     try {
       const data = await fetchUrl(url)
