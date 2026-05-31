@@ -55,7 +55,8 @@ export default function Auth() {
       } else {
         const { error } = await signUp(email, password)
         if (error) throw error
-        openTutorial('/career-test?new=true')
+        // 신규 가입은 항상 튜토리얼 표시
+        setTutorialDest('/career-test?new=true')
       }
     } catch (err) {
       const msg = err.message || ''
