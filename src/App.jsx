@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import { useTheme } from './hooks/useTheme'
+import { useAuth } from './hooks/useAuth'
 import Navbar from './components/Navbar'
 import { TUTORIAL_KEY } from './components/Tutorial'
 import Home from './pages/Home'
@@ -13,14 +14,23 @@ import AuthCallback from './pages/AuthCallback'
 import CareerTest from './pages/CareerTest'
 import School from './pages/School'
 
-// 첫 방문 시 /auth로 리디렉트
-function FirstVisitRedirect() {
+// 비로그인 시 /auth로 리디렉트 (공개 경로 제외)
+// 자동로그인: Supabase getSession()이 기존 세션 복원
+const PUBLIC_PATHS = ['/auth', '/career-test', '/school', '/map']
+
+function AuthGuard() {
+  const { user, loading } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+
   useEffect(() => {
-    if (!localStorage.getItem(TUTORIAL_KEY)) {
+    if (loading) return
+    const isPublic = PUBLIC_PATHS.some(p => location.pathname === p || location.pathname.startsWith(p + '/'))
+    if (!user && !isPublic) {
       navigate('/auth', { replace: true })
     }
-  }, [])
+  }, [user, loading, location.pathname])
+
   return null
 }
 
@@ -29,7 +39,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <FirstVisitRedirect />
+      <AuthGuard />
       <Navbar theme={theme} onToggleTheme={toggle} />
       <Routes>
         <Route path="/" element={<Home />} />
