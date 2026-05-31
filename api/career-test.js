@@ -1,7 +1,7 @@
 const https = require('https')
 const http = require('http')
 
-const CAREER_API_KEY = process.env.CAREER_NET_API_KEY || '43f5190dec8329d2d10afc58319967f6'
+const CAREER_API_KEY = process.env.CAREER_NET_API_KEY
 
 // 커리어넷 공식 API 파라미터 (POST + JSON 방식)
 // q=5  → 직업흥미검사H형 질문, qestrnSeq=5  trgetSe=100207
@@ -89,6 +89,10 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
 
   if (req.method === 'OPTIONS') return res.status(200).end()
+
+  if (!CAREER_API_KEY) {
+    return res.status(500).json({ ok: false, error: 'CAREER_NET_API_KEY 환경변수가 설정되지 않았습니다.' })
+  }
 
   const params = req.query || {}
 
