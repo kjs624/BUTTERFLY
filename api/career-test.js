@@ -116,20 +116,36 @@ module.exports = async function handler(req, res) {
   // POST 답변 제출 → 결과
   if (req.method === 'POST') {
     const body = await parseBody(req)
-    const { version = 1, gender = '100323', grade = '2', answers = [], startDtm } = body
-
-    if (!answers.length) return res.status(400).json({ ok: false, error: '답변이 없습니다' })
+    // answersMap: [{q: qitemNo, v: value}, ...] — 프론트에서 실제 qitemNo 매핑 후 전달
+    // answers(구버전): 단순 배열 — 폴백용
+    const { version = 1, gender = '100323', grade = '2',
+            answersMap, answers: legacyAnswers = [],
+            refJob = '', startDtm } = body
 
     const ver = parseInt(version)
     const config = VERSIONS[ver] || VERSIONS[1]
     const now = startDtm || new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14)
 
-    // answers 형식 구성
-    // V1 (H형): "B1=점수값 B2=점수값..." (B 접두사 + 공백 구분, answerScore 값)
-    // V2 (K형): "1=위치값 2=위치값..."  (번호 접두사 + 공백 구분)
-    const answersStr = answers
-      .map((a, i) => ver === 1 ? `B${i + 1}=${a}` : `${i + 1}=${a}`)
+    // answersMap 우선 사용, 없으면 구버전 배열 변환
+    // 텍스트(주관식) 답변은 숫자가 아니므로 반드시 제외
+    let items = []
+    if (Array.isArray(answersMap) && answersMap.length > 0) {
+      items = answersMap.filter(item => item && typeof item.v === 'number')
+    } else {
+      items = legacyAnswers
+        .map((v, i) => (typeof v === 'number' && v !== null) ? { q: i + 1, v } : null)
+        .filter(Boolean)
+    }
+
+    if (!items.length) return res.status(400).json({ ok: false, error: '유효한 답변이 없습니다' })
+
+    // H형: "B{qitemNo}={score}" · K형: "{qitemNo}={position}"
+    const answersStr = items
+      .map(({ q, v }) => ver === 1 ? `B${q}=${v}` : `${q}=${v}`)
       .join(' ')
+
+    console.log(`[career-test] ver=${ver} qestrnSeq=${config.qestrnSeq} items=${items.length} refJob="${refJob}"`)
+    console.log(`[career-test] answersStr(앞100자): ${answersStr.slice(0, 100)}`)
 
     const requestBody = {
       apikey: CAREER_API_KEY,
@@ -140,9 +156,9 @@ module.exports = async function handler(req, res) {
       grade,
       startDtm: now,
       answers: answersStr,
+      // K형 주관식(희망 직업)은 refJob 파라미터로 별도 전달
+      ...(ver === 2 && refJob ? { refJob } : {}),
     }
-
-    console.log(`[career-test] POST report → qestrnSeq=${config.qestrnSeq} trgetSe=${config.trgetSe} gender=${gender} grade=${grade} answers(${answers.length}):`, answersStr.slice(0, 120))
 
     try {
       const data = await postJson(requestBody)

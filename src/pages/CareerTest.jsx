@@ -213,13 +213,31 @@ export default function CareerTest() {
   }
 
   async function handleSubmit() {
-    const unanswered = answers.findIndex(a => isUnanswered(a))
-    if (unanswered !== -1) {
-      const jumpPage = Math.floor(unanswered / PER_PAGE)
+    // 텍스트(주관식) 문항 인덱스 집합 — 선택형만 필수 검증
+    const textIdxSet = new Set(questions.map((q, i) => q.answerScore01 == null ? i : -1).filter(i => i >= 0))
+
+    const selectionUnanswered = questions.findIndex((q, i) => !textIdxSet.has(i) && isUnanswered(answers[i]))
+    if (selectionUnanswered !== -1) {
+      const jumpPage = Math.floor(selectionUnanswered / PER_PAGE)
       setPage(jumpPage)
-      setError(`${unanswered + 1}번 문항에 아직 답하지 않았습니다`)
+      setError(`${selectionUnanswered + 1}번 문항에 아직 답하지 않았습니다`)
       return
     }
+
+    // answersMap: 실제 qitemNo + 숫자 답변만 포함 (텍스트 제외)
+    const answersMap = questions
+      .map((q, i) => {
+        if (textIdxSet.has(i)) return null           // 주관식 → 별도 refJob으로
+        const v = answers[i]
+        if (v === null || v === undefined) return null
+        return { q: parseInt(q.qitemNo || q.no || q.qnum || (i + 1)), v: Number(v) }
+      })
+      .filter(Boolean)
+
+    // K형 주관식(희망 직업) 텍스트 별도 추출
+    const refJob = version === 2
+      ? [...textIdxSet].reduce((acc, i) => answers[i] || acc, '')
+      : ''
 
     setLoading(true)
     setError('')
@@ -227,7 +245,7 @@ export default function CareerTest() {
       const res = await fetch(`${API_BASE}/api/career-test`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ version, gender, grade, answers, startDtm: startTime }),
+        body: JSON.stringify({ version, gender, grade, answersMap, refJob, startDtm: startTime }),
       })
       const data = await res.json()
       if (!data.ok) throw new Error(data.error || '결과를 가져오지 못했습니다')
@@ -283,9 +301,15 @@ export default function CareerTest() {
 
   const totalPages = Math.ceil(questions.length / PER_PAGE)
   const currentQs = questions.slice(page * PER_PAGE, (page + 1) * PER_PAGE)
-  const answeredCount = answers.filter(a => !isUnanswered(a)).length
-  const progress = questions.length > 0 ? Math.round((answeredCount / questions.length) * 100) : 0
-  const isPageDone = currentQs.every((_, i) => !isUnanswered(answers[page * PER_PAGE + i]))
+  // 선택형 문항만 진행률에 반영 (주관식 제외)
+  const selectionTotal = questions.filter(q => q.answerScore01 != null).length || questions.length
+  const answeredCount = questions.filter((q, i) => q.answerScore01 != null && !isUnanswered(answers[i])).length
+  const progress = selectionTotal > 0 ? Math.round((answeredCount / selectionTotal) * 100) : 0
+  // 주관식 문항은 필수가 아님 — 선택형만 체크
+  const isPageDone = currentQs.every((q, i) => {
+    if (q.answerScore01 == null) return true  // 주관식: 선택사항
+    return !isUnanswered(answers[page * PER_PAGE + i])
+  })
 
   const card = {
     background: 'var(--card-bg)', border: '1px solid var(--card-border)',
